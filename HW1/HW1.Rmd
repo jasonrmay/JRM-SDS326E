@@ -3,3 +3,17 @@ title: "HW1"
 output: html_document
 ---
 
+```{R}
+library(tidyverse)
+library(MASS)
+```
+
+```{R}
+
+```
+
+```{Python}
+import pandas as pd
+import numpy as np
+import matplotlib as plt
+```
