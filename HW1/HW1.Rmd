@@ -1,19 +1,106 @@
 ---
 title: "HW1"
+author: " Jason R. May
 output: html_document
 ---
 
 ```{R}
 library(tidyverse)
-library(MASS)
 ```
 
-```{R}
+# Question 1
+```{r}
+
+  # part a
+  college <- read.csv("Data/College.csv")
+  
+  # part b
+  rownames(college) <- college[, 1]
+  View(college)
+  college <- college[, -1]
+  view(college)
+  
+  # part c
+  
+    ## part i.
+    summary(college)
+    
+    ## part ii.
+    pairs(college[,2:11])
+    
+    ## part iii.
+    college |> 
+      ggplot(aes(x = factor(Private), y = Outstate)) +
+      geom_boxplot() +
+      labs(title = "Out-of-State Tuition vs Private College",
+           x = "Private College",
+           y = "Out-of-State tuintion") +
+      theme_bw()
+
+    ## part iv.
+    Elite <- rep("No", nrow(college))
+    Elite[college$Top10perc > 50] <- "Yes"
+    Elite <- as.factor(Elite)
+    college <- data.frame(college, Elite)
+
+    summary(college)
+
+    college |>
+      ggplot(aes(x = factor(Elite), y = Outstate)) +
+      geom_boxplot() +
+      labs(title = "Out-of-State Tuition vs Elite College",
+           x = "Elite College",
+           y = "Out-of-State tuintion") +
+      theme_bw()
+
+    ## part v.
+    par(mfrow = c(2,2))
+    bins = c(10, 15, 20, 25)
+    for (bin in bins) {
+      hist(college$Outstate, 
+           breaks = bin, 
+           main = paste("Histogram of Out-of-State Tuition with", bin, "bins"),
+           xlab = "Out-of-State Tuition",
+           col = "lightblue",
+           border = "black")
+    }
+
+    ## part vi.
+
+    # exploring the relation ship between grad rate and s.f.ratio
+    college |>
+      ggplot(aes(S.F.Ratio,Grad.Rate)) +
+      geom_point() +
+      labs(title = "Graduation Rate vs Student-Faculty Ratio",
+           x = "Student-Faculty Ratio",
+           y = "Graduation Rate") +
+      theme_bw()
+
+    # randomly sample half the data to meet the assumption of linear regression
+    set.seed(100)
+    collegeSample <- 
+      college |> sample_n(nrow(college)/2)
+
+    view(collegeSample)
+
+    # run a linear model to see the relationship
+    model <- 
+      lm(Grad.Rate ~ S.F.Ratio, data = collegeSample)
+
+    # check residuals
+    plot(model)
+
+    # The residuals appear to be linear, normal, and equally spread out; thus, the assumptions of linear regression are met.
+    summary(model)
+    
+```
+## Question 1 part C subpart VI summary
+From a linear regression test, we found the assumption to be met and a significant negative relationship between Graduation Rate and Student-Faculty Ratio (t = -1.25, p-value < 0.001, df = 386). This suggests a higher student-faculty ratio is associated with a lower graduation rate. The overall model was statistically significant (F = 15.63, p-value < 0.001, df = 386) but explained approximately 9.4% of the variance in graduation rates (Adjusted R-squared: 0.094). Therefore, while there is a significant relationship, the effect size is small.
+
+# Question 2
+```{r}
 
 ```
 
-```{Python}
-import pandas as pd
-import numpy as np
-import matplotlib as plt
-```
+
+
