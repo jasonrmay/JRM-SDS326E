@@ -193,10 +193,6 @@ Variables that appear to be strongly correlated with mpg include weight, displac
 ```{R}
   library(ISLR2)
 
-  Boston
-
-  ?Boston
-  
   n_rows <- nrow(Boston)
   n_cols <- ncol(Boston)
   
@@ -263,7 +259,7 @@ It appears that the log of crime and the log of average number of rooms per dwel
 
   # normality assumptions not met
 ```
-
+### Question 3.C comments
 While the scatter plot of the transformed data appears to show a linear relationship, the QQ residuals plot of a linear model are not normally distributed, thus failing to meet the assumptions of linear regression. Therefore, we can not conclude that there is a significant linear relationship between the log of crime and the log of average number of rooms per dwelling.
 
 # Question 3.D
