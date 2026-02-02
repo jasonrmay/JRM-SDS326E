@@ -1,6 +1,5 @@
 ---
 title: "HW1"
-author: " Jason R. May
 output: html_document
 ---
 
@@ -10,7 +9,6 @@ library(tidyverse)
 
 # Question 1
 ```{r}
-
   # part a
   college <- read.csv("Data/College.csv")
   
@@ -81,8 +79,6 @@ library(tidyverse)
     collegeSample <- 
       college |> sample_n(nrow(college)/2)
 
-    view(collegeSample)
-
     # run a linear model to see the relationship
     model <- 
       lm(Grad.Rate ~ S.F.Ratio, data = collegeSample)
@@ -94,11 +90,67 @@ library(tidyverse)
     summary(model)
     
 ```
-## Question 1 part C subpart VI summary
+
+### Question 1 part C.VI summary
 From a linear regression test, we found the assumption to be met and a significant negative relationship between Graduation Rate and Student-Faculty Ratio (t = -1.25, p-value < 0.001, df = 386). This suggests a higher student-faculty ratio is associated with a lower graduation rate. The overall model was statistically significant (F = 15.63, p-value < 0.001, df = 386) but explained approximately 9.4% of the variance in graduation rates (Adjusted R-squared: 0.094). Therefore, while there is a significant relationship, the effect size is small.
 
 # Question 2
 ```{r}
+  Auto <- read.csv("Data/Auto.csv")
+  Auto <- Auto[Auto$horsepower != "?", ]
+  
+  Auto$horsepower <- as.numeric(Auto$horsepower)
+  AUto <- na.omit(Auto)
+  Auto$origin <- as.character(Auto$origin)
+  Auto$cylinders <- as.character(Auto$cylinders)
+  Auto$year <- as.character(Auto$year)
+  
+  # part a
+  quantitative_vars <- Auto |>
+    select_if(is.numeric)
+  
+  qualitative_vars <- Auto |>
+    select_if(is.character)
+
+  # part b
+  range(quantitative_vars)
+
+  
+  # part c
+  n_quantitative <- ncol(quantitative_vars)
+  
+  for ( i in seq(1,n_quantitative) ) {
+    var <- quantitative_vars[,i]
+    sd_var <- sd(var)
+    mean_var <- mean(var)
+    name <- colnames(quantitative_vars)[i] 
+    print(name)
+    print(paste("Standard Deviation:", sd_var))
+    print(paste("Mean:", sd_var))
+    print("---------------------------------")
+  }
+  
+  # part d
+  AutoSlice <- Auto[10:85, ]
+  
+  quantitative_vars_slice <- AutoSlice |>
+    select_if(is.numeric)
+  
+  for ( i in seq(1,n_quantitative) ) {
+    var <- quantitative_vars_slice[,i]
+    sd_var <- sd(var)
+    mean_var <- mean(var)
+    range_var <- range(var)
+    name <- colnames(quantitative_vars_slice)[i] 
+    print(name)
+    print(paste("Standard Deviation:", sd_var))
+    print(paste("Mean:", mean_var))
+    print(paste("Range:", range_var))
+    print("------------------------------------------")
+  }
+  
+  # part e
+  # create a scatterplot matrix for each pair of quantitative variables lableled by each qualitative variable
 
 ```
 
