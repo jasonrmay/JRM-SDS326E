@@ -97,10 +97,10 @@ From a linear regression test, we found the assumption to be met and a significa
 # Question 2
 ```{r}
   Auto <- read.csv("Data/Auto.csv")
+  AUto <- na.omit(Auto)
   Auto <- Auto[Auto$horsepower != "?", ]
   
   Auto$horsepower <- as.numeric(Auto$horsepower)
-  AUto <- na.omit(Auto)
   Auto$origin <- as.character(Auto$origin)
   Auto$cylinders <- as.character(Auto$cylinders)
   Auto$year <- as.character(Auto$year)
@@ -132,7 +132,7 @@ From a linear regression test, we found the assumption to be met and a significa
   
   # part d
   AutoSlice <- Auto[10:85, ]
-  
+
   quantitative_vars_slice <- AutoSlice |>
     select_if(is.numeric)
   
@@ -150,9 +150,24 @@ From a linear regression test, we found the assumption to be met and a significa
   }
   
   # part e
+  
   # create a scatterplot matrix for each pair of quantitative variables lableled by each qualitative variable
+  pairs(quantitative_vars, 
+        col = as.numeric(qualitative_vars$origin),
+        main = "Scatterplot Matrix of Quantitative Variables Colored by Origin")
+
+  pairs(quantitative_vars,
+        col = as.numeric(qualitative_vars$cylinders),
+        main = "Scatterplot Matrix of Quantitative Variables Colored by Cylinders")
+  
+  pairs(quantitative_vars,
+        col = as.numeric(qualitative_vars$year),
+        main = "Scatterplot Matrix of Quantitative Variables Colored by Year")
 
 ```
+### Question 2 part e comments
+From the scatterplot matrices, it appears that the number of cylinders nicely groups the data points for several pairs of quantitative variables, such as horsepower vs. mpg and weight vs. mpg. The origin variable also shows some grouping, particularly for displacement vs. mpg. The year variable does not seem to create distinct groupings in the scatterplots. There are clearly some non-linear relationships present, such as between horsepower and mpg, which shows a curved pattern rather than a straight line. However, there are many clean linear relationships as well, such as between weight and mpg.
 
-
+### Question 2 part F
+Variables that appear to be strongly correlated with mpg include weight, displacement, and horsepower. Each scatterplot between mpg and these variable show tightly grouped data points suggesting they are strongly related and useful predictors.
 
