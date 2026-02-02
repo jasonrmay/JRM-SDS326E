@@ -7,94 +7,101 @@ output: html_document
 library(tidyverse)
 ```
 
-# Question 1
+# Question 1.A
 ```{r}
   # part a
   college <- read.csv("Data/College.csv")
-  
-  # part b
+```
+
+
+# Question 1.B
+```{r}
+
   rownames(college) <- college[, 1]
   View(college)
   college <- college[, -1]
   view(college)
-  
-  # part c
-  
-    ## part i.
-    summary(college)
-    
-    ## part ii.
-    pairs(college[,2:11])
-    
-    ## part iii.
-    college |> 
-      ggplot(aes(x = factor(Private), y = Outstate)) +
-      geom_boxplot() +
-      labs(title = "Out-of-State Tuition vs Private College",
-           x = "Private College",
-           y = "Out-of-State tuintion") +
-      theme_bw()
-
-    ## part iv.
-    Elite <- rep("No", nrow(college))
-    Elite[college$Top10perc > 50] <- "Yes"
-    Elite <- as.factor(Elite)
-    college <- data.frame(college, Elite)
-
-    summary(college)
-
-    college |>
-      ggplot(aes(x = factor(Elite), y = Outstate)) +
-      geom_boxplot() +
-      labs(title = "Out-of-State Tuition vs Elite College",
-           x = "Elite College",
-           y = "Out-of-State tuintion") +
-      theme_bw()
-
-    ## part v.
-    par(mfrow = c(2,2))
-    bins = c(10, 15, 20, 25)
-    for (bin in bins) {
-      hist(college$Outstate, 
-           breaks = bin, 
-           main = paste("Histogram of Out-of-State Tuition with", bin, "bins"),
-           xlab = "Out-of-State Tuition",
-           col = "lightblue",
-           border = "black")
-    }
-
-    ## part vi.
-
-    # exploring the relation ship between grad rate and s.f.ratio
-    college |>
-      ggplot(aes(S.F.Ratio,Grad.Rate)) +
-      geom_point() +
-      labs(title = "Graduation Rate vs Student-Faculty Ratio",
-           x = "Student-Faculty Ratio",
-           y = "Graduation Rate") +
-      theme_bw()
-
-    # randomly sample half the data to meet the assumption of linear regression
-    set.seed(100)
-    collegeSample <- 
-      college |> sample_n(nrow(college)/2)
-
-    # run a linear model to see the relationship
-    model <- 
-      lm(Grad.Rate ~ S.F.Ratio, data = collegeSample)
-
-    # check residuals
-    plot(model)
-
-    # The residuals appear to be linear, normal, and equally spread out; thus, the assumptions of linear regression are met.
-    summary(model)
-    
 ```
 
-### Question 1 part C.VI summary
+# Question 1.C.i
+```{r}
+  summary(college)
+```
+# Question 1.C.ii
+```{r}
+  pairs(college[,2:11])
+```
+# Question 1.C.iii
+```{r}
+  college |> 
+    ggplot(aes(x = factor(Private), y = Outstate)) +
+    geom_boxplot() +
+    labs(title = "Out-of-State Tuition vs Private College",
+         x = "Private College",
+         y = "Out-of-State tuintion") +
+    theme_bw()
+```
+# Question 1.C.iv
+```{r}
+  Elite <- rep("No", nrow(college))
+  Elite[college$Top10perc > 50] <- "Yes"
+  Elite <- as.factor(Elite)
+  college <- data.frame(college, Elite)
+  
+  summary(college)
+  
+  college |>
+    ggplot(aes(x = factor(Elite), y = Outstate)) +
+    geom_boxplot() +
+    labs(title = "Out-of-State Tuition vs Elite College",
+         x = "Elite College",
+         y = "Out-of-State tuintion") +
+    theme_bw()
+```
+# Question 1.C.v
+```{r}
+  par(mfrow = c(2,2))
+  bins = c(10, 15, 20, 25)
+  for (bin in bins) {
+    hist(college$Outstate, 
+         breaks = bin, 
+         main = paste("Histogram of Out-of-State Tuition with", bin, "bins"),
+         xlab = "Out-of-State Tuition",
+         col = "lightblue",
+         border = "black")
+  }
+```
+# Question 1.vi
+```{r}
+  # exploring the relation ship between grad rate and s.f.ratio
+  college |>
+    ggplot(aes(S.F.Ratio,Grad.Rate)) +
+    geom_point() +
+    labs(title = "Graduation Rate vs Student-Faculty Ratio",
+         x = "Student-Faculty Ratio",
+         y = "Graduation Rate") +
+    theme_bw()
+
+  # randomly sample half the data to meet the assumption of linear regression
+  set.seed(100)
+  collegeSample <- 
+    college |> sample_n(nrow(college)/2)
+
+  # run a linear model to see the relationship
+  model <- 
+    lm(Grad.Rate ~ S.F.Ratio, data = collegeSample)
+
+  # check residuals
+  plot(model)
+
+  # The residuals appear to be linear, normal, and equally spread out; thus, the assumptions of linear regression are met.
+  summary(model)
+    
+```
+### Question 1.C.vi comments
 From a linear regression test, we found the assumption to be met and a significant negative relationship between Graduation Rate and Student-Faculty Ratio (t = -1.25, p-value < 0.001, df = 386). This suggests a higher student-faculty ratio is associated with a lower graduation rate. The overall model was statistically significant (F = 15.63, p-value < 0.001, df = 386) but explained approximately 9.4% of the variance in graduation rates (Adjusted R-squared: 0.094). Therefore, while there is a significant relationship, the effect size is small.
 
-# Question 2
+# Question 2.A
 ```{r}
   Auto <- read.csv("Data/Auto.csv")
   AUto <- na.omit(Auto)
@@ -111,11 +118,16 @@ From a linear regression test, we found the assumption to be met and a significa
   
   qualitative_vars <- Auto |>
     select_if(is.character)
+```
 
+# Question 2.B
+```{r}
   # part b
   range(quantitative_vars)
+```
 
-  
+#Question 2.C
+```{r}
   # part c
   n_quantitative <- ncol(quantitative_vars)
   
@@ -129,7 +141,10 @@ From a linear regression test, we found the assumption to be met and a significa
     print(paste("Mean:", sd_var))
     print("---------------------------------")
   }
-  
+```
+
+#Question 2.D
+```{r}
   # part d
   AutoSlice <- Auto[10:85, ]
 
@@ -148,7 +163,10 @@ From a linear regression test, we found the assumption to be met and a significa
     print(paste("Range:", range_var))
     print("------------------------------------------")
   }
-  
+```
+
+# Question 2.E
+```{r}
   # part e
   
   # create a scatterplot matrix for each pair of quantitative variables lableled by each qualitative variable
@@ -165,9 +183,119 @@ From a linear regression test, we found the assumption to be met and a significa
         main = "Scatterplot Matrix of Quantitative Variables Colored by Year")
 
 ```
-### Question 2 part e comments
-From the scatterplot matrices, it appears that the number of cylinders nicely groups the data points for several pairs of quantitative variables, such as horsepower vs. mpg and weight vs. mpg. The origin variable also shows some grouping, particularly for displacement vs. mpg. The year variable does not seem to create distinct groupings in the scatterplots. There are clearly some non-linear relationships present, such as between horsepower and mpg, which shows a curved pattern rather than a straight line. However, there are many clean linear relationships as well, such as between weight and mpg.
+### Question 2.E comments
+From the scatter plot matrices, it appears that the number of cylinders nicely groups the data points for several pairs of quantitative variables, such as horsepower vs. mpg and weight vs. mpg. The origin variable also shows some grouping, particularly for displacement vs. mpg. The year variable does not seem to create distinct groupings in the scatter plots. There are clearly some non-linear relationships present, such as between horsepower and mpg, which shows a curved pattern rather than a straight line. However, there are many clean linear relationships as well, such as between weight and mpg.
 
-### Question 2 part F
+# Question 2.F
 Variables that appear to be strongly correlated with mpg include weight, displacement, and horsepower. Each scatterplot between mpg and these variable show tightly grouped data points suggesting they are strongly related and useful predictors.
+
+# Question 3.A
+```{R}
+  library(ISLR2)
+
+  Boston
+
+  ?Boston
+  
+  n_rows <- nrow(Boston)
+  n_cols <- ncol(Boston)
+  
+  print(paste("Number of rows:", n_rows))
+  print(paste("Number of columns:", n_cols))
+  
+```
+### Question 3.A comments
+The Boston data set has 506 rows and 14 columns. Each represents the suburbs of Boston with various attributes such as crime rate, average number of rooms per dwelling, and median value of owner-occupied homes.
+
+# Question 3.B
+```{r}
+  # use pairs to create a scatter plot matrix but split it into two parts to improve readability
+  pairs(Boston[, 1:7])
+  pairs(Boston[, 8:13])
+  pairs(Boston)
+  
+  Boston |>
+      ggplot(aes(nox,zn)) +
+      geom_point() +
+      labs() +
+      theme_bw()
+  
+  Boston |>
+      ggplot(aes(crim,rm)) +
+      geom_point() +
+      labs() +
+      theme_bw()
+  
+  Boston |>
+      mutate(tranf_crim = log(crim), tranf_rm = log(rm)) |>
+      ggplot(aes(tranf_crim,tranf_rm)) +
+      geom_point() +
+      labs() +
+      theme_bw()
+```
+### Question 3.B comments
+There are several non linear relationships present in the scatter plot matrix. For example, the relationship between nox and zn appears to be non-linear. Similarly, the relationship between crim and rm also appears to be non-linear. After applying a log transformation to both variables, the relationship between crim and rm appears to be more linear.
+
+# Question 3.C
+It appears that the log of crime and the log of average number of rooms per dwelling have a negative linear relationship. As the log of crime increases, the log of average number of rooms per dwelling decreases.
+```{r}
+  Boston |>
+      mutate(tranf_crim = log(crim), tranf_rm = log(rm)) |>
+      ggplot(aes(tranf_crim,tranf_rm)) +
+      geom_point() +
+      labs() +
+      theme_bw()
+
+  Boston <- Boston |>
+      mutate(tranf_crim = log(crim), tranf_rm = log(rm))
+
+  # randomly sample half the data to meet the assumption of linear regression
+  set.seed(100)
+  BostonSample <- 
+    Boston |> sample_n(nrow(Boston)/2)
+
+  # run a linear model to see the relationship
+  model <- 
+    lm(tranf_crim ~ tranf_rm, data = Boston)
+
+  # check residuals
+  plot(model)
+
+  # normality assumptions not met
+```
+
+While the scatter plot of the transformed data appears to show a linear relationship, the QQ residuals plot of a linear model are not normally distributed, thus failing to meet the assumptions of linear regression. Therefore, we can not conclude that there is a significant linear relationship between the log of crime and the log of average number of rooms per dwelling.
+
+# Question 3.D
+```{r}
+  range(Boston$tax)
+  range(Boston$crim)
+  range(Boston$ptratio)
+```
+### Question 3.D comments
+The range of the crime rate per capita is immensely larger than the ranges of both the property tax rate and pupil-teacher ratio. The range of crime rate is 88.9762 (0.00632 to 88.9830), while the range of property tax rate is 666 (187 to 853) and the range of pupil-teacher ratio is 20.2 (12.6 to 22.0). This suggest that some suburbs have extremely high crime rates compared to others, while the property tax rate and pupil-teacher ratio are more consistent across suburbs. That being said, the property tax rate still has a fairly large range compared to the pupil-teacher ratio.
+
+# Question 3.E
+```{r}
+  bound <- Boston[Boston["chas"] == 1,]
+  print(paste("Number of suburbs that bound the Charles river:",nrow(bound)))
+```
+# Question 3.F
+```{r}
+  median_ptratio <- median(Boston$ptratio)
+  print(paste("Median pupil-teacher ratio:", median_ptratio))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
 
