@@ -71,7 +71,7 @@ library(tidyverse)
          border = "black")
   }
 ```
-# Question 1.vi
+# Question 1,C.vi
 ```{r}
   # exploring the relation ship between grad rate and s.f.ratio
   college |>
@@ -259,6 +259,7 @@ It appears that the log of crime and the log of average number of rooms per dwel
 
   # normality assumptions not met
 ```
+
 ### Question 3.C comments
 While the scatter plot of the transformed data appears to show a linear relationship, the QQ residuals plot of a linear model are not normally distributed, thus failing to meet the assumptions of linear regression. Therefore, we can not conclude that there is a significant linear relationship between the log of crime and the log of average number of rooms per dwelling.
 
@@ -268,6 +269,7 @@ While the scatter plot of the transformed data appears to show a linear relation
   range(Boston$crim)
   range(Boston$ptratio)
 ```
+
 ### Question 3.D comments
 The range of the crime rate per capita is immensely larger than the ranges of both the property tax rate and pupil-teacher ratio. The range of crime rate is 88.9762 (0.00632 to 88.9830), while the range of property tax rate is 666 (187 to 853) and the range of pupil-teacher ratio is 20.2 (12.6 to 22.0). This suggest that some suburbs have extremely high crime rates compared to others, while the property tax rate and pupil-teacher ratio are more consistent across suburbs. That being said, the property tax rate still has a fairly large range compared to the pupil-teacher ratio.
 
