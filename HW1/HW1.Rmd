@@ -27,10 +27,12 @@ library(tidyverse)
 ```{r}
   summary(college)
 ```
+
 # Question 1.C.ii
 ```{r}
   pairs(college[,2:11])
 ```
+
 # Question 1.C.iii
 ```{r}
   college |> 
@@ -41,6 +43,7 @@ library(tidyverse)
          y = "Out-of-State tuintion") +
     theme_bw()
 ```
+
 # Question 1.C.iv
 ```{r}
   Elite <- rep("No", nrow(college))
@@ -58,6 +61,7 @@ library(tidyverse)
          y = "Out-of-State tuintion") +
     theme_bw()
 ```
+
 # Question 1.C.v
 ```{r}
   par(mfrow = c(2,2))
@@ -71,6 +75,7 @@ library(tidyverse)
          border = "black")
   }
 ```
+
 # Question 1,C.vi
 ```{r}
   # exploring the relation ship between grad rate and s.f.ratio
@@ -98,6 +103,7 @@ library(tidyverse)
   summary(model)
     
 ```
+
 ### Question 1.C.vi comments
 From a linear regression test, we found the assumption to be met and a significant negative relationship between Graduation Rate and Student-Faculty Ratio (t = -1.25, p-value < 0.001, df = 386). This suggests a higher student-faculty ratio is associated with a lower graduation rate. The overall model was statistically significant (F = 15.63, p-value < 0.001, df = 386) but explained approximately 9.4% of the variance in graduation rates (Adjusted R-squared: 0.094). Therefore, while there is a significant relationship, the effect size is small.
 
@@ -126,7 +132,7 @@ From a linear regression test, we found the assumption to be met and a significa
   range(quantitative_vars)
 ```
 
-#Question 2.C
+# Question 2.C
 ```{r}
   # part c
   n_quantitative <- ncol(quantitative_vars)
@@ -143,7 +149,7 @@ From a linear regression test, we found the assumption to be met and a significa
   }
 ```
 
-#Question 2.D
+# Question 2.D
 ```{r}
   # part d
   AutoSlice <- Auto[10:85, ]
@@ -183,6 +189,7 @@ From a linear regression test, we found the assumption to be met and a significa
         main = "Scatterplot Matrix of Quantitative Variables Colored by Year")
 
 ```
+
 ### Question 2.E comments
 From the scatter plot matrices, it appears that the number of cylinders nicely groups the data points for several pairs of quantitative variables, such as horsepower vs. mpg and weight vs. mpg. The origin variable also shows some grouping, particularly for displacement vs. mpg. The year variable does not seem to create distinct groupings in the scatter plots. There are clearly some non-linear relationships present, such as between horsepower and mpg, which shows a curved pattern rather than a straight line. However, there are many clean linear relationships as well, such as between weight and mpg.
 
@@ -229,6 +236,7 @@ The Boston data set has 506 rows and 14 columns. Each represents the suburbs of 
       labs() +
       theme_bw()
 ```
+
 ### Question 3.B comments
 There are several non linear relationships present in the scatter plot matrix. For example, the relationship between nox and zn appears to be non-linear. Similarly, the relationship between crim and rm also appears to be non-linear. After applying a log transformation to both variables, the relationship between crim and rm appears to be more linear.
 
