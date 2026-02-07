@@ -13,36 +13,44 @@ library(tidyverse)
   college <- read.csv("Data/College.csv")
 ```
 
+This reads in the college csv into a table. 
 
 # Question 1.B
 ```{r}
-
   rownames(college) <- college[, 1]
   View(college)
   college <- college[, -1]
   view(college)
 ```
 
+First we set the table index to the first column (college names). Secondly, we select all rows and columns **EXCEPT COLUMN 1**.
+
 # Question 1.C.i
 ```{r}
   summary(college)
 ```
+
+This provides us the 5 number summary and the mean of each column in our table.
 
 # Question 1.C.ii
 ```{r}
   pairs(college[,2:11])
 ```
 
+The produces a scatter plot of each variable with every other variable, though here we subsetted the data to only the 2nd to the 11th columns/variables.
+
 # Question 1.C.iii
 ```{r}
   college |> 
-    ggplot(aes(x = factor(Private), y = Outstate)) +
+    ggplot(aes(x = Private, y = Outstate)) +
     geom_boxplot() +
     labs(title = "Out-of-State Tuition vs Private College",
          x = "Private College",
          y = "Out-of-State tuintion") +
     theme_bw()
 ```
+
+This grouped boxplot of out of state tuition grouped by private status shows the median out of state tuition is significantly higher for private colleges. In fact, all statistics in the five number summary, except the minimum, is higher for private colleges in terms of out of state tuition.
 
 # Question 1.C.iv
 ```{r}
@@ -62,6 +70,8 @@ library(tidyverse)
     theme_bw()
 ```
 
+There are 78 elite colleges. The grouped box plot of out-of-state tuition grouped by elite college status shows every statistic in the five number summary as higher for the elite colleges.
+
 # Question 1.C.v
 ```{r}
   par(mfrow = c(2,2))
@@ -75,6 +85,8 @@ library(tidyverse)
          border = "black")
   }
 ```
+
+We see the out of state tuition is slightly right skewed, centered at 9990 dollars, and has an IQR of 5605.
 
 # Question 1,C.vi
 ```{r}
@@ -104,15 +116,19 @@ library(tidyverse)
     
 ```
 
-### Question 1.C.vi comments
 From a linear regression test, we found the assumption to be met and a significant negative relationship between Graduation Rate and Student-Faculty Ratio (t = -1.25, p-value < 0.001, df = 386). This suggests a higher student-faculty ratio is associated with a lower graduation rate. The overall model was statistically significant (F = 15.63, p-value < 0.001, df = 386) but explained approximately 9.4% of the variance in graduation rates (Adjusted R-squared: 0.094). Therefore, while there is a significant relationship, the effect size is small.
 
 # Question 2.A
 ```{r}
+  # read csv
   Auto <- read.csv("Data/Auto.csv")
-  AUto <- na.omit(Auto)
+  Auto <- as_tibble(Auto)
+
+  # drop missing data
+  Auto <- na.omit(Auto)
   Auto <- Auto[Auto$horsepower != "?", ]
   
+  # set qualitative variables to character dtypes and quantitative variable to numeric dtypes.
   Auto$horsepower <- as.numeric(Auto$horsepower)
   Auto$origin <- as.character(Auto$origin)
   Auto$cylinders <- as.character(Auto$cylinders)
@@ -121,16 +137,26 @@ From a linear regression test, we found the assumption to be met and a significa
   # part a
   quantitative_vars <- Auto |>
     select_if(is.numeric)
+  print(names(quantitative_vars))
   
   qualitative_vars <- Auto |>
     select_if(is.character)
+  print(names(qualitative_vars))
 ```
+
+Here I read in the data, dropped the missing data, and set a standard of data type for the two groups of variables. Notably, I included the year of make as qualitative variable since in this analysis it is treated as a label rather than a predictor. 
 
 # Question 2.B
 ```{r}
   # part b
-  range(quantitative_vars)
+  for ( var in names(quantitative_vars) ){
+    var_range <- Auto |> 
+      select(var) |> range()
+    print( paste( paste("Range of", var), toString(var_range) ) )
+  }
 ```
+
+Here we see the range of each quantitative variable. The first number is the minimum and and the second number is the maximum. This is including outliers.
 
 # Question 2.C
 ```{r}
@@ -138,7 +164,7 @@ From a linear regression test, we found the assumption to be met and a significa
   n_quantitative <- ncol(quantitative_vars)
   
   for ( i in seq(1,n_quantitative) ) {
-    var <- quantitative_vars[,i]
+    var <- as.data.frame(quantitative_vars)[,i]
     sd_var <- sd(var)
     mean_var <- mean(var)
     name <- colnames(quantitative_vars)[i] 
@@ -152,7 +178,7 @@ From a linear regression test, we found the assumption to be met and a significa
 # Question 2.D
 ```{r}
   # part d
-  AutoSlice <- Auto[10:85, ]
+  AutoSlice <- as.data.frame(Auto)[10:85, ]
 
   quantitative_vars_slice <- AutoSlice |>
     select_if(is.numeric)
@@ -166,7 +192,7 @@ From a linear regression test, we found the assumption to be met and a significa
     print(name)
     print(paste("Standard Deviation:", sd_var))
     print(paste("Mean:", mean_var))
-    print(paste("Range:", range_var))
+    print(paste("Range:", toString(range_var)))
     print("------------------------------------------")
   }
 ```
@@ -190,7 +216,6 @@ From a linear regression test, we found the assumption to be met and a significa
 
 ```
 
-### Question 2.E comments
 From the scatter plot matrices, it appears that the number of cylinders nicely groups the data points for several pairs of quantitative variables, such as horsepower vs. mpg and weight vs. mpg. The origin variable also shows some grouping, particularly for displacement vs. mpg. The year variable does not seem to create distinct groupings in the scatter plots. There are clearly some non-linear relationships present, such as between horsepower and mpg, which shows a curved pattern rather than a straight line. However, there are many clean linear relationships as well, such as between weight and mpg.
 
 # Question 2.F
@@ -207,7 +232,7 @@ Variables that appear to be strongly correlated with mpg include weight, displac
   print(paste("Number of columns:", n_cols))
   
 ```
-### Question 3.A comments
+
 The Boston data set has 506 rows and 14 columns. Each represents the suburbs of Boston with various attributes such as crime rate, average number of rooms per dwelling, and median value of owner-occupied homes.
 
 # Question 3.B
@@ -237,11 +262,12 @@ The Boston data set has 506 rows and 14 columns. Each represents the suburbs of 
       theme_bw()
 ```
 
-### Question 3.B comments
 There are several non linear relationships present in the scatter plot matrix. For example, the relationship between nox and zn appears to be non-linear. Similarly, the relationship between crim and rm also appears to be non-linear. After applying a log transformation to both variables, the relationship between crim and rm appears to be more linear.
 
 # Question 3.C
+
 It appears that the log of crime and the log of average number of rooms per dwelling have a negative linear relationship. As the log of crime increases, the log of average number of rooms per dwelling decreases.
+
 ```{r}
   Boston |>
       mutate(tranf_crim = log(crim), tranf_rm = log(rm)) |>
@@ -268,7 +294,6 @@ It appears that the log of crime and the log of average number of rooms per dwel
   # normality assumptions not met
 ```
 
-### Question 3.C comments
 While the scatter plot of the transformed data appears to show a linear relationship, the QQ residuals plot of a linear model are not normally distributed, thus failing to meet the assumptions of linear regression. Therefore, we can not conclude that there is a significant linear relationship between the log of crime and the log of average number of rooms per dwelling.
 
 # Question 3.D
@@ -278,7 +303,6 @@ While the scatter plot of the transformed data appears to show a linear relation
   range(Boston$ptratio)
 ```
 
-### Question 3.D comments
 The range of the crime rate per capita is immensely larger than the ranges of both the property tax rate and pupil-teacher ratio. The range of crime rate is 88.9762 (0.00632 to 88.9830), while the range of property tax rate is 666 (187 to 853) and the range of pupil-teacher ratio is 20.2 (12.6 to 22.0). This suggest that some suburbs have extremely high crime rates compared to others, while the property tax rate and pupil-teacher ratio are more consistent across suburbs. That being said, the property tax rate still has a fairly large range compared to the pupil-teacher ratio.
 
 # Question 3.E
@@ -286,6 +310,7 @@ The range of the crime rate per capita is immensely larger than the ranges of bo
   bound <- Boston[Boston["chas"] == 1,]
   print(paste("Number of suburbs that bound the Charles river:",nrow(bound)))
 ```
+
 # Question 3.F
 ```{r}
   median_ptratio <- median(Boston$ptratio)
