@@ -1,6 +1,7 @@
 ---
 title: "HW1"
 output: html_document
+author: Jason R. May
 ---
 
 ```{R}
@@ -144,14 +145,14 @@ From a linear regression test, we found the assumption to be met and a significa
   print(names(qualitative_vars))
 ```
 
-Here I read in the data, dropped the missing data, and set a standard of data type for the two groups of variables. Notably, I included the year of make as qualitative variable since in this analysis it is treated as a label rather than a predictor. 
+Here I read in the data, dropped the missing data, and set a standard of data type for the two groups of variables. Notably, I included the year the car was made as a qualitative variable since in this analysis it is treated as a label rather than a predictor. 
 
 # Question 2.B
 ```{r}
   # part b
   for ( var in names(quantitative_vars) ){
     var_range <- Auto |> 
-      select(var) |> range()
+      select(any_of(var)) |> range()
     print( paste( paste("Range of", var), toString(var_range) ) )
   }
 ```
@@ -163,6 +164,7 @@ Here we see the range of each quantitative variable. The first number is the min
   # part c
   n_quantitative <- ncol(quantitative_vars)
   
+    # loop through each quantitative variable and print the standard deviation and mean
   for ( i in seq(1,n_quantitative) ) {
     var <- as.data.frame(quantitative_vars)[,i]
     sd_var <- sd(var)
@@ -183,6 +185,7 @@ Here we see the range of each quantitative variable. The first number is the min
   quantitative_vars_slice <- AutoSlice |>
     select_if(is.numeric)
   
+  # loop through each quantitative variable and print the standard deviation, mean, and range
   for ( i in seq(1,n_quantitative) ) {
     var <- quantitative_vars_slice[,i]
     sd_var <- sd(var)
@@ -219,7 +222,7 @@ Here we see the range of each quantitative variable. The first number is the min
 From the scatter plot matrices, it appears that the number of cylinders nicely groups the data points for several pairs of quantitative variables, such as horsepower vs. mpg and weight vs. mpg. The origin variable also shows some grouping, particularly for displacement vs. mpg. The year variable does not seem to create distinct groupings in the scatter plots. There are clearly some non-linear relationships present, such as between horsepower and mpg, which shows a curved pattern rather than a straight line. However, there are many clean linear relationships as well, such as between weight and mpg.
 
 # Question 2.F
-Variables that appear to be strongly correlated with mpg include weight, displacement, and horsepower. Each scatterplot between mpg and these variable show tightly grouped data points suggesting they are strongly related and useful predictors.
+Variables that appear to be strongly correlated with mpg include weight, displacement, and horsepower. Each scatterplot between mpg and these variables show tightly grouped data points suggesting they are strongly related and useful predictors.
 
 # Question 3.A
 ```{R}
@@ -242,18 +245,21 @@ The Boston data set has 506 rows and 14 columns. Each represents the suburbs of 
   pairs(Boston[, 8:13])
   pairs(Boston)
   
+  # the relationship between nox and zn appears to be non-linear
   Boston |>
       ggplot(aes(nox,zn)) +
       geom_point() +
       labs() +
       theme_bw()
   
+  # the relationship between crime rate and average number of rooms per dwelling appears to be non-linear
   Boston |>
       ggplot(aes(crim,rm)) +
       geom_point() +
       labs() +
       theme_bw()
   
+  # apply log transformation to crim and rm to see if the relationship becomes more linear
   Boston |>
       mutate(tranf_crim = log(crim), tranf_rm = log(rm)) |>
       ggplot(aes(tranf_crim,tranf_rm)) +
@@ -266,7 +272,7 @@ There are several non linear relationships present in the scatter plot matrix. F
 
 # Question 3.C
 
-It appears that the log of crime and the log of average number of rooms per dwelling have a negative linear relationship. As the log of crime increases, the log of average number of rooms per dwelling decreases.
+It appears that the log of crime and the log of average number of rooms per dwelling have a negative linear relationship. That is, as the log of crime increases, the log of average number of rooms per dwelling decreases.
 
 ```{r}
   Boston |>
@@ -294,7 +300,7 @@ It appears that the log of crime and the log of average number of rooms per dwel
   # normality assumptions not met
 ```
 
-While the scatter plot of the transformed data appears to show a linear relationship, the QQ residuals plot of a linear model are not normally distributed, thus failing to meet the assumptions of linear regression. Therefore, we can not conclude that there is a significant linear relationship between the log of crime and the log of average number of rooms per dwelling.
+The QQ residuals plot of a linear model suggests the residuals are not normally distributed, thus we fail to meet the assumptions of a linear regression test. Therefore, we can not conclude that there is a significant linear relationship between the log of crime and the log of average number of rooms per dwelling.
 
 # Question 3.D
 ```{r}
