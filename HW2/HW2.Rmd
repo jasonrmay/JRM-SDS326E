@@ -1,0 +1,35 @@
+---
+title: "HW2"
+output: html_document
+---
+
+```{r}
+library(tidyverse)
+```
+
+# Question 8 
+```{r}
+dat <- read_csv("Data/Auto.csv")
+
+```
+
+# Question 9 
+```{r}
+dat <- read_csv("Data/Auto.csv")
+```
+
+# Question 10 
+```{r}
+carseats <- read_csv("Data/Carseats.csv")
+```
+
+# Question 13 
+```{r}
+
+```
+
+# (Bonus) Question 11
+```{r}
+
+```
+
