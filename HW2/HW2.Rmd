@@ -54,10 +54,58 @@ plot(model)
 ```
 The residual vs fitted plot shows the residuals to be funneling and have a parabolic shape . This indicates that the variance of the residuals is not constant and that there may be a non-linear relationship between horsepower and miles per gallon. Therefore, this model fails to satisfy the homoscedasticity assumption and the linear residual assumption.
 
-# Question 9 
+# Question 9.A
 ```{r}
 dat <- read_csv("Data/Auto.csv")
+glimpse(dat)
+
+# filter out the rows with "?" in the horsepower column and convert it to numeric data type.
+dat <- dat |> filter(horsepower != "?") |> mutate(horsepower = as.numeric(horsepower))
+
+pairs(dat[, 1:8])
 ```
+
+# Question 9.B
+```{r}
+cor(dat[, 1:8])
+```
+
+# Question 9.C
+```{r}
+# run a linear regression model with all the predictors
+predictors = dat[, 1:8]
+model <- lm(mpg ~ ., data = predictors)
+summary(model)
+```
+
+# Question 9.D
+```{r}
+plot(model)
+```
+
+# Question 9.E
+```{r}
+# Use the * and : symbols to fit linear regression models with interaction effects. 
+model <- lm(mpg ~ cylinders * displacement * horsepower * weight * acceleration * year, data = predictors)
+summary(model)
+```
+
+# Question 9.F
+```{r}
+log_data <- lapply(dat[, 1:8], log)
+sqrt_data <- lapply(dat[, 1:8], sqrt)
+squared_data <- lapply(dat[, 1:8], function(x) x^2)
+
+log_model <- lm(mpg ~ ., data = log_data)
+sqrt_model <- lm(mpg ~ ., data = sqrt_data)
+squared_model <- lm(mpg ~ ., data = squared_data)
+
+summary(log_model)
+summary(sqrt_model)
+summary(squared_model)
+
+```
+
 
 # Question 10 
 ```{r}
