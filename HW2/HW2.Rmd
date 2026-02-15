@@ -7,11 +7,52 @@ output: html_document
 library(tidyverse)
 ```
 
-# Question 8 
+# Question 8.A
 ```{r}
+# load the data
 dat <- read_csv("Data/Auto.csv")
+glimpse(dat)
 
+# filter out the rows with "?" in the horsepower column and convert it to numeric data type.
+dat <- dat |> filter(horsepower != "?") |> mutate(horsepower = as.numeric(horsepower))
+
+model <- lm(mpg ~ horsepower, data = dat)
+summary(model)
+
+horsepower_value <- data.frame(horsepower = 98)
+predicted_mpg <- predict(model, horsepower_value, interval = "confidence", level = 0.95)
+print(paste("predicted mpg for a car with a horsepower of 98: ", predicted_mpg[1]))
+print(paste("95% confidence interval for the mean mpg:", predicted_mpg[2], "to", predicted_mpg[3]))
+predicted_mpg <- predict(model, horsepower_value, interval = "prediction", level = 0.95)
+print(paste("95% prediction interval for the mpg of a car with 98 horsepower:", predicted_mpg[2], "to", predicted_mpg[3]))
 ```
+
+*i. There is a significant relationship between horsepower and miles per gallon (mpg) since the p-value for the horsepower coefficient is less than 0.05. The negative coefficient indicates that as horsepower increases, mpg tends to decrease.*
+
+*ii. There is a weak relationship between horsepower and miles per gallon (mpg) as the estimated correlation coefficient is less than 0.3.*
+
+*iii. The negative estimate indicates that the relationship between horsepower and mpg is negative, meaning that as horsepower increases, mpg tends to decrease.*
+
+*iv. For a car with a horsepower of 98, the predicted mpg is 24.467 with a 95% confidence interval of 23.973 to 24.961 mpg. The prediction interval is 14.809 to 34.125 mpg.*
+
+# Question 8.B
+
+```{r}
+dat |> 
+  ggplot() + 
+  geom_point(aes(x = horsepower, y = mpg)) + 
+  geom_abline(intercept = model$coefficients[1], slope = model$coefficients[2], color = "red") +
+  labs(title = "Scatter plot of Horsepower vs. Miles Per Gallon",
+       x = "Horsepower",
+       y = "Miles Per Gallon")
+```
+The scatter plot shows a negative relationship between horsepower and miles per gallon (mpg). As horsepower increases, mpg tends to decrease. The red line represents the fitted regression line, which also indicates a negative slope. This visual representation supports the conclusion from the regression analysis that there is a negative relationship between horsepower and mpg.
+
+# Question 8.C
+```{r}
+plot(model)
+```
+The residual vs fitted plot shows the residuals to be funneling and have a parabolic shape . This indicates that the variance of the residuals is not constant and that there may be a non-linear relationship between horsepower and miles per gallon. Therefore, this model fails to satisfy the homoscedasticity assumption and the linear residual assumption.
 
 # Question 9 
 ```{r}
@@ -20,7 +61,7 @@ dat <- read_csv("Data/Auto.csv")
 
 # Question 10 
 ```{r}
-carseats <- read_csv("Data/Carseats.csv")
+dat <- read_csv("Data/Carseats.csv")
 ```
 
 # Question 13 
