@@ -5,6 +5,7 @@ output: html_document
 
 ```{r}
 library(tidyverse)
+library(ggrepel)
 ```
 
 # Question 8.A
@@ -107,14 +108,142 @@ summary(squared_model)
 ```
 
 
-# Question 10 
+# Question 10 Data Cleaning
 ```{r}
 dat <- read_csv("Data/Carseats.csv")
+head(dat)
+tail(dat)
+sample(dat, 10)
 ```
-
-# Question 13 
+# Question 10.A
+```{r}
+model <- lm(Sales ~ Price + Urban + US, data = dat)
+summary(model)
+```
+# Question 10.B
 ```{r}
 
+```
+
+# Question 10.C
+```{r}
+
+```
+
+# Question 10.D
+```{r}
+
+```
+
+# Question 10.E
+```{r}
+sig_model <- lm (Sales ~ Price, data = dat)
+summary(sig_model)
+```
+
+# Question 10.F
+```{r}
+
+```
+
+# Question 10.G
+```{r}
+confidence_int <- confint(sig_model)
+```
+
+# Question 10.H
+```{r}
+plot(sig_model)
+```
+
+
+# Question 13.A
+```{r}
+set.seed(1)
+x <- rnorm(100)
+```
+
+# Question 13.B
+```{r}
+eps <- rnorm(100, sd = 0.25)
+```
+
+# Question 13.C
+```{r}
+y <- -1 + 0.5 * x + eps
+```
+
+# Question 13.D
+```{r}
+ggplot() +
+geom_point(aes(x = x, y = y)) +
+theme_bw()
+```
+
+# Question 13.E
+```{r}
+model <- lm(y ~ x)
+summary(model)
+```
+
+# Question 13.F
+```{r}
+ggplot() +
+geom_point(aes(x = x, y = y)) +
+geom_abline(intercept = model$coefficients[1], slope = model$coefficients[2], color = "BLUE", linetype = "dashed") +
+geom_abline(intercept = -1, slope = 0.5) +
+geom_label_repel(aes(x = 0, y = -1, label = "True Relation"), color = "red", nudge_y = 0.8, nudge_x = -.1) +
+geom_label_repel(aes(x = 0, y = -1, label = "LSRL"), color = "blue", nudge_y = -0.8, nudge_x = .1) +
+theme_bw()
+```
+
+# Question 13.G
+```{r}
+quadratic_model <- lm(y ~ x + I(x^2))
+summary(quadratic_model)
+MSE_quadratic <- mean(quadratic_model$residuals^2)
+print(paste("MSE of the quadratic model: ", MSE_quadratic))
+```
+
+# Question 13.H
+```{r}
+x <- rnorm(100)
+eps <- rnorm(100, sd = 0.125)
+y <- -1 + 0.5 * x + eps
+less_noise_model <- lm(y ~ x)
+summary(less_noise_model)
+
+ggplot() +
+geom_point(aes(x = x, y = y)) +
+geom_abline(intercept = less_noise_model$coefficients[1], slope = less_noise_model$coefficients[2], color = "BLUE", linetype = "dashed") +
+geom_abline(intercept = -1, slope = 0.5) +
+geom_label_repel(aes(x = 0, y = -1, label = "True Relation"), color = "red", nudge_y = 0.8, nudge_x = -.1) +
+geom_label_repel(aes(x = 0, y = -1, label = "LSRL"), color = "blue", nudge_y = -0.8, nudge_x = .1) +
+theme_bw()
+```
+
+# Question 13.I
+```{r}
+x <- rnorm(100)
+eps <- rnorm(100, sd = 0.5)
+y <- -1 + 0.5 * x + eps
+more_noise_model <- lm(y ~ x)
+summary(more_noise_model)
+
+ggplot() +
+geom_point(aes(x = x, y = y)) +
+geom_abline(intercept = more_noise_model$coefficients[1], slope = more_noise_model$coefficients[2], color = "BLUE", linetype = "dashed") +
+geom_abline(intercept = -1, slope = 0.5) +
+geom_label_repel(aes(x = 0, y = -1, label = "True Relation"), color = "red", nudge_y = 0.8, nudge_x = -.1) +
+geom_label_repel(aes(x = 0, y = -1, label = "LSRL"), color = "blue", nudge_y = -0.8, nudge_x = .1) +
+theme_bw()
+```
+
+# Question 13.J
+```{r}
+less_CI <- confint(less_noise_model)
+CI <- confint(model)
+more_CI <- confint(more_noise_model)
 ```
 
 # (Bonus) Question 11
