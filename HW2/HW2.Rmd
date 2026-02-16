@@ -63,11 +63,13 @@ glimpse(dat)
 # filter out the rows with "?" in the horsepower column and convert it to numeric data type.
 dat <- dat |> filter(horsepower != "?") |> mutate(horsepower = as.numeric(horsepower))
 
+# the pairwise scatterplots for all columns but the names.
 pairs(dat[, 1:8])
 ```
 
 # Question 9.B
 ```{r}
+# The correlation matrix for columns.
 cor(dat[, 1:8])
 ```
 
@@ -78,21 +80,27 @@ predictors = dat[, 1:8]
 model <- lm(mpg ~ ., data = predictors)
 summary(model)
 ```
+*i. The model as a whole has a F-stat of 252.4, 384 degrees of freedom, and a p value which significantly smaller than .05. Therefore, there is a relationship between the response and the predictors.*
+*ii. There are several significant relationships present. The year, origin, weight, and displacement are all significant predictors of miles per gallon (MPG).*
+*iii. The estimated coefficient for the year variable is 0.75 which suggest that, if we hold every other variable constant and increase the year by 1, the model predicts a 0.75 increase in MPG.*
 
 # Question 9.D
 ```{r}
 plot(model)
 ```
-
+There appears to not be any clear outliers of the residuals plot, but there is a observation, number 14, which has a unusually high leverage. Observation 14 is the 	
+Buick estate wagon (sw) which has an significantly lower weight than other cars with similar characteristics. 
 # Question 9.E
 ```{r}
-# Use the * and : symbols to fit linear regression models with interaction effects. 
+# fit a linear regression model with all the predictors and their interactions.
 model <- lm(mpg ~ cylinders * displacement * horsepower * weight * acceleration * year, data = predictors)
 summary(model)
 ```
+None of the interaction effects are significant.
 
 # Question 9.F
 ```{r}
+# apply a log, square root, and squared transformation to the predictors and fit a linear regression model for each transformation.
 log_data <- lapply(dat[, 1:8], log)
 sqrt_data <- lapply(dat[, 1:8], sqrt)
 squared_data <- lapply(dat[, 1:8], function(x) x^2)
@@ -106,49 +114,49 @@ summary(sqrt_model)
 summary(squared_model)
 
 ```
-
+There are changes in which predictors are significant and the r squared value only increases from the log and square root transforms.
 
 # Question 10 Data Cleaning
 ```{r}
+# read the data 
 dat <- read_csv("Data/Carseats.csv")
+
+# look at the data for anything needing cleaning
 head(dat)
 tail(dat)
 sample(dat, 10)
 ```
 # Question 10.A
 ```{r}
+# a linear regression model
 model <- lm(Sales ~ Price + Urban + US, data = dat)
 summary(model)
 ```
 # Question 10.B
-```{r}
-
-```
+*Price: while holding other variables constant the model predicts for every unit of price increase sales decrease by 0.05 units*
+*UrbanYes: a dummy variable since the urban variable is qualitative. The model compares the means between the group of observation where the urban is "Yes" and "No." The estimate is -0.02 units so the group of observations where urban is "Yes" has 0.02 less sales than observations where urban is "No."*
+*USYes: a dummy variable since the US variable is qualitative.The estimate is 1.2 units so the group of observations where US is "Yes" has 1.2 more sales than observations where US is "No."*
 
 # Question 10.C
-```{r}
-
-```
+Sales = 13.04 - 0.05 * Price - 0.02 * UrbanYes + 1.2 * USYes
 
 # Question 10.D
-```{r}
-
-```
+*This null hypothesis applies to only quantitative variables and the only one where we can reject it is for our price variable. Assuming the null hypothesis is true, the probability a sample would have our estimate is far smaller than 5% (pvalue < 2e-16); therefore, our assumption must be wrong.*
 
 # Question 10.E
 ```{r}
+# fit a linear regression model with only the significant quantitative predictor
 sig_model <- lm (Sales ~ Price, data = dat)
 summary(sig_model)
 ```
 
 # Question 10.F
-```{r}
-
-```
+The model fit with only the significant quantitative predictor, price, has an R-squared value of 0.196 which is lower than the R-squared value of 0.24 for the model with all predictors. This suggests that the other predictors, even though they are not significant, do contribute to explaining some of the variability in sales. However, the r squared value in both cases is low. Price only explains about 20% of the variability in sales.
 
 # Question 10.G
 ```{r}
 confidence_int <- confint(sig_model)
+print(paste("95% confidence interval for the price coefficient: ", confidence_int[2, 1], "to", confidence_int[2, 2]))
 ```
 
 # Question 10.H
@@ -156,35 +164,47 @@ confidence_int <- confint(sig_model)
 plot(sig_model)
 ```
 
+There does not appear to be any outliers but there appears to be a point with high leverage. One observation has a leverage of about 0.041 and the next highest is about 0.028.
 
 # Question 13.A
 ```{r}
+# set a constant random seed
 set.seed(1)
+# generate 100 random numbers realted to the seed from a standard normal distribution
 x <- rnorm(100)
 ```
 
 # Question 13.B
 ```{r}
+# generate 100 random numbers related to the seed from a normal distribution with mean 0 and standard deviation 0.25 to represent the noise term
 eps <- rnorm(100, sd = 0.25)
 ```
 
 # Question 13.C
 ```{r}
+# the population relationship is given by the equation
 y <- -1 + 0.5 * x + eps
 ```
 
+Y has a length of 100, beta naught is -1, and beta 1 is 0.5.
+
 # Question 13.D
 ```{r}
+# create a scatterplot of the data
 ggplot() +
 geom_point(aes(x = x, y = y)) +
 theme_bw()
 ```
+
+There is a clear positive linear relationship between x and y.
 
 # Question 13.E
 ```{r}
 model <- lm(y ~ x)
 summary(model)
 ```
+
+This linear model has a high r squared value and a significant f statistic. The estimated coefficients are close to the true population parameters, with the intercept being -1.0094 and the slope being 0.4997. This suggests that the linear model is a good fit for the data and captures the underlying relationship between x and y well.
 
 # Question 13.F
 ```{r}
@@ -197,13 +217,16 @@ geom_label_repel(aes(x = 0, y = -1, label = "LSRL"), color = "blue", nudge_y = -
 theme_bw()
 ```
 
+The least squares regression line (LSRL) is very close to the true population relationship. The blue dashed line representing the least squares regression line is basically on top of the red line representing the true relationship.
+
 # Question 13.G
 ```{r}
 quadratic_model <- lm(y ~ x + I(x^2))
 summary(quadratic_model)
 MSE_quadratic <- mean(quadratic_model$residuals^2)
-print(paste("MSE of the quadratic model: ", MSE_quadratic))
 ```
+
+The quadratic model is essentially the same as the linear model. There is a rounding error of change in the adjusted r squared. The squared term is also not significant so not use in a conclusion and the linear term remains significant.
 
 # Question 13.H
 ```{r}
@@ -222,6 +245,8 @@ geom_label_repel(aes(x = 0, y = -1, label = "LSRL"), color = "blue", nudge_y = -
 theme_bw()
 ```
 
+The model with less noise has a much higher r squared value (0.95) and linear estimate is still significant, but the estimates are further from the true population parameters than the LSRL. The intercept is -0.98975 and the slope is 0.51397.
+
 # Question 13.I
 ```{r}
 x <- rnorm(100)
@@ -239,12 +264,19 @@ geom_label_repel(aes(x = 0, y = -1, label = "LSRL"), color = "blue", nudge_y = -
 theme_bw()
 ```
 
+The model with more noise still has the linear estimate as significant, but has a much lower r squared value (0.536) and the estimates are further from the true population parameters than the LSRL. The intercept is -1.0073 and the slope is 0.4568.
+
 # Question 13.J
 ```{r}
 less_CI <- confint(less_noise_model)
+print(paste("95% confidence interval for the slope coefficient in the less noise model: ", less_CI[2, 1], "to", less_CI[2, 2]))
 CI <- confint(model)
+print(paste("95% confidence interval for the slope coefficient in the original model: ", CI[2, 1], "to", CI[2, 2]))
 more_CI <- confint(more_noise_model)
+print(paste("95% confidence interval for the slope coefficient in the more noise model: ", more_CI[2, 1], "to", more_CI[2, 2]))
 ```
+
+the difference in the 95% confidence intervals for the slope coefficient is proportional to the amount of noise in the data. The confidence interval for the less noise model is narrower (0.48 to 0.55) than the confidence interval for the original model (0.45 to 0.55), which is narrower than the confidence interval for the more noise model (0.41 to 0.50). This suggests that as the amount of noise in the data increases, the confidence interval for the slope coefficient becomes wider.
 
 # (Bonus) Question 11
 ```{r}
