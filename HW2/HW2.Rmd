@@ -54,6 +54,7 @@ dat |>
 ```{r}
 plot(model)
 ```
+
 * The residual vs fitted plot shows the residuals to be funneling and have a parabolic shape . This indicates that the variance of the residuals is not constant and that there may be a non-linear relationship between horsepower and miles per gallon. Therefore, this model fails to satisfy the homoscedasticity assumption and the linear residual assumption.
 
 # Question 9.A
@@ -119,15 +120,10 @@ summary(squared_model)
 
 * There are changes in which predictors are significant and the r squared value only increases from the log and square root transforms.
 
-# Question 10 Data Cleaning
+# Question 10
 ```{r}
 # read the data 
 dat <- read_csv("Data/Carseats.csv")
-
-# look at the data for anything needing cleaning
-head(dat)
-tail(dat)
-sample(dat, 10)
 ```
 
 # Question 10.A
@@ -138,8 +134,8 @@ summary(model)
 ```
 # Question 10.B
 * Price: while holding other variables constant the model predicts for every unit of price increase sales decrease by 0.05 units
-* UrbanYes: a dummy variable since the urban variable is qualitative. The model compares the means between the group of observation where the urban is "Yes" and "No." The estimate is -0.02 units so the group of observations where urban is "Yes" has 0.02 less sales than observations where urban is "No."
-* USYes: a dummy variable since the US variable is qualitative.The estimate is 1.2 units so the group of observations where US is "Yes" has 1.2 more sales than observations where US is "No."
+* UrbanYes: a dummy variable since the urban variable is qualitative. The model compares the means between the group of observation where the urban is "Yes" and "No." The estimate is -0.02 so the group of observations where urban is "Yes" has 0.02 less sales than observations where urban is "No."
+* USYes: a dummy variable since the US variable is qualitative.The estimate is 1.2 so the group of observations where US is "Yes" has 1.2 more sales than observations where US is "No."
 
 # Question 10.C
 * Sales = 13.04 - 0.05 * Price - 0.02 * UrbanYes + 1.2 * USYes
@@ -229,7 +225,7 @@ quadratic_model <- lm(y ~ x + I(x^2))
 summary(quadratic_model)
 ```
 
-* The quadratic model is essentially the same as the linear model. There is a rounding error of change in the adjusted r squared. The squared term is also not significant so not use in a conclusion and the linear term remains significant.
+* The quadratic model is essentially the same as the linear model. There is a rounding error of change in the adjusted r squared. The squared term does not have a significant relationship with the response and the linear term remains significant.
 
 # Question 13.H
 ```{r}
@@ -248,7 +244,7 @@ geom_label_repel(aes(x = 0, y = -1, label = "LSRL"), color = "blue", nudge_y = -
 theme_bw()
 ```
 
-* The model with less noise has a much higher r squared value (0.95) and linear estimate is still significant, but the estimates are further from the true population parameters than the LSRL. The intercept is -0.98975 and the slope is 0.51397.
+* The model with less noise has a higher r squared value (0.95) and the linear estimate is still significant, but the estimates are further from the true population parameters than the LSRL. The intercept is -0.98975 and the slope is 0.51397.
 
 # Question 13.I
 ```{r}
@@ -267,7 +263,7 @@ geom_label_repel(aes(x = 0, y = -1, label = "LSRL"), color = "blue", nudge_y = -
 theme_bw()
 ```
 
-* The model with more noise still has the linear estimate as significant, but has a much lower r squared value (0.536) and the estimates are further from the true population parameters than the LSRL. The intercept is -1.0073 and the slope is 0.4568.
+* The model with more noise has a lower r squared value (0.536) and the estimates are further from the true population parameters than the LSRL, but the estimates remains significant. The intercept is -1.0073 and the slope is 0.4568.
 
 # Question 13.J
 ```{r}
