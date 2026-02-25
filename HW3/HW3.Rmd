@@ -1,0 +1,21 @@
+---
+title: "HW3"
+output: html_document
+---
+# Jason R. May
+
+# Question 12
+```{r}
+
+```
+
+# Question 14 a,b,c,f,h
+```{r}
+
+```
+
+# Question 15 
+```{r}
+
+```
+
