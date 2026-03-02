@@ -4,18 +4,226 @@ output: html_document
 ---
 # Jason R. May
 
-# Question 12
 ```{r}
+library(tidyverse)
+library(tinytex)
+```
+
+# Question 12.A
+
+$$ \begin{equation}
+\ln \left( \text{Odds}_{\text{orange Vs. apple}} \right) = \ln\left(\frac{\widehat{Pr}(Y = \text{orange}| X=x )}{1 - \widehat{Pr}(Y = \text{orange}| X=x )}\right) = \ln\left(\frac{\widehat{\Pr}(Y = \text{orange} | X = x)}{\widehat{\Pr}(Y = \text{apple} | X = x)}\right) = \hat{\beta_{0}} + \hat{\beta_{1}}X
+\end{equation} $$
+
+# Question 12.B
+$$ \begin{equation}
+\ln\left(\text{Odds}_{\text{orange Vs. apple}}\right) = \ln\left( \frac{\widehat{Pr}(Y = \text{orange}| X=x )}{1 - \widehat{Pr}(Y = \text{orange}| X=x )}\right)=\ln \left(\frac{\widehat{\Pr}(Y = \text{orange} | X = x)}{\widehat{\Pr}(Y = \text{apple} | X = x)}\right) = (\hat{\alpha}_{\text{orange}0} - \hat{\alpha}_{\text{apple}0}) + (\hat{\alpha}_{\text{orange}1} - \hat{\alpha}_{\text{apple}1})X
+\end{equation} $$
+
+# Question 12.C
+
+*From parts (a) and (b), both models produce the same log odds:
+
+$$\hat{\beta}_0 + \hat{\beta}_1 X = (\hat{\alpha}_{\text{orange}0} - \hat{\alpha}_{\text{apple}0}) + (\hat{\alpha}_{\text{orange}1} - \hat{\alpha}_{\text{apple}1})X$$
+
+*Due to linearity, we can just match the coefficients of the two models to find the relationship between the parameters:
+
+$$\hat{\alpha}_{\text{orange}0} - \hat{\alpha}_{\text{apple}0} = \hat{\beta}_0 = 2$$
+$$\hat{\alpha}_{\text{orange}1} - \hat{\alpha}_{\text{apple}1} = \hat{\beta}_1 = -1$$
+* there are infinity many solutions to the above systems without an additional constraint equation. This means that there are infinity many solutions that give the same softmax model; therefore, the softmax model is not uniquely identifiable and is overparamertized.
+
+# Question 12.D
+
+*Equating the log odds:
+
+$$\hat{\beta}_0 + \hat{\beta}_1 x = (\hat{\alpha}_{\text{orange}0} - \hat{\alpha}_{\text{apple}0}) + (\hat{\alpha}_{\text{orange}1} - \hat{\alpha}_{\text{apple}1})x$$
+
+*Leveraging linearity, equating the coefficients, and plugging in the softmax parameters given:
+
+$$\hat{\beta}_0 = \hat{\alpha}_{\text{orange}0} - \hat{\alpha}_{\text{apple}0} = 1.2 - 3 = -1.8$$
+
+$$\hat{\beta}_1 = \hat{\alpha}_{\text{orange}1} - \hat{\alpha}_{\text{apple}1} = -2 - 0.6 = -2.6$$
+
+*We have the unique solutions $\hat{\beta}_0 = -1.8$ and $\hat{\beta}_1 = -2.6$. This implies the logistic regression model is not overparamertized and the softmax regression is a generalization of the logistic regression.
+
+# Question 12.E
+
+*I expect the models to agree 100% of the time as they are mathematically equivalent.
+
+```{r}
+# Simulate 2000 test observations
+test_data <- tibble(x = rnorm(2000))
+
+# logistic model: beta_0 = -1.8, beta_1 = -2.6
+your_model <- test_data |>
+  mutate(
+    prob_orange = exp(-1.8 + -2.6 * x) / (1 + exp(-1.8 + -2.6 * x)),
+    # label as orange assuming cut-off of 0.5, else label as apple
+    pred_logistic = ifelse(prob_orange > 0.5, "orange", "apple")
+  )
+
+# softmax model
+friends_model <- test_data |>
+  mutate(
+    prob_orange = exp(1.2 + -2 * x) / 
+                 (exp(1.2 + -2 * x) + exp(3 + 0.6 * x)),
+    pred_softmax = ifelse(prob_orange > 0.5, "orange", "apple")
+  )
+
+# Compare predictions
+mean(your_model$pred_logistic == friends_model$pred_softmax)
+```
+
+*This code simulates 2000 test observations, applies both the logistic and softmax models to predict the probabilities of being orange, and then compares the predicted labels from both models. The answer is always one; therefore, the models are in complete agreement always.
+
+# Question 14.A
+```{r}
+Auto <- read_csv("Data/Auto.csv")
+
+glimpse(Auto)
+
+# change horsepower to numeric
+Auto <- Auto |> 
+  mutate(horsepower = as.numeric(horsepower))
+
+# create 'mpg01' var which is 1 if mpg > median(mpg) and 0 otherwise
+Auto <- Auto |> 
+  mutate(mpg01 = ifelse(mpg > median(mpg), 1, 0))
+```
+
+# Question 14.B
+```{r}
+features <- Auto |> 
+  select(-name)
+
+pairs(features)
+
+features |>
+  ggplot(aes(x = weight, y = mpg01)) +
+  geom_point() +
+  theme_bw()
+
+features |>
+  ggplot(aes(x = horsepower, y = mpg01)) +
+  geom_point() +
+  theme_bw()
+```
+
+*Horsepower and weight seem to be the best predictors as they have the least overlapping points between the two classes (mpg01 = 0 and mpg01 = 1).
+
+# Question 14.C
+```{r}
+myvars <- c("weight", "mpg01")
+auto_sub <- Auto[myvars]
+auto_sub <- auto_sub[complete.cases(auto_sub), ] #Remove missing data
+
+K = 10 
+N = nrow(auto_sub)
+fold_index = rep_len(1:K, N) #We repeat the sequence (1,2...,K) until reach size N
+fold_index = sample(fold_index, replace = FALSE) #We randomly permute the elements of fold_index
+
+for (j in 1:K)
+{
+  train_index = which(fold_index != j)
+  auto_sub_train = auto_sub[train_index,]
+  auto_sub_test = auto_sub[-train_index,]
+}
 
 ```
 
-# Question 14 a,b,c,f,h
+# Question 14.F
 ```{r}
+# using logistic model
+
+glm.fits <- glm(mpg01 ~ weight, data = auto_sub_train, family = binomial)
+
+summary(glm.fits)
+
+glm.probs <- predict(glm.fits, auto_sub_test, type = "response")
+
+glm.pred <- ifelse(glm.probs > 0.5, 1, 0)
+table(Predicition = glm.pred, Actual = auto_sub_test$mpg01)
 
 ```
 
-# Question 15 
+*The test error rate is 0.13 (5/39). This means that the model correctly classifies 87% of the test observations.
+
+# Question 14.H
 ```{r}
+# using KNN
+library(class)
+train_X <- auto_sub_train$weight
+test_X <- auto_sub_test$weight
+train_Y <- auto_sub_train$mpg01
+test_Y <- auto_sub_test$mpg01
+
+dim(train_X) <- c(length(train_X), 1)
+dim(test_X) <- c(length(test_X), 1)
+
+knn_pred_1 <- knn(train_X, test_X, train_Y, k = 1)
+table(Prediction = knn_pred_1, Actual = test_Y)
+print(paste("Test error rate for K = 1 is", round(1 - mean(knn_pred_1 == test_Y), 2)))
+
+knn_pred_5 <- knn(train_X, test_X, train_Y, k = 5)
+table(Prediction = knn_pred_5, Actual = test_Y)
+print(paste("Test error rate for K = 5 is", round(1 - mean(knn_pred_5 == test_Y), 2)))
+
+knn_pred_10 <- knn(train_X, test_X, train_Y, k = 10)
+table(Prediction = knn_pred_10, Actual = test_Y)
+print(paste("Test error rate for K = 10 is", round(1 - mean(knn_pred_10 == test_Y), 2)))
+```
+
+*K=5 and K=10 seem to provide the same test error rate of 0.15, which is worse than the logistic regression model. K=1 has a higher test error rate of 0.21. If we account for performance, than KNN with k = 5 is the best.
+
+# Question 15.A
+```{r}
+power <- function() {
+  print(2^3)
+}
+power()
 
 ```
+
+# Question 15.B
+```{r}
+power2 <- function(x,a) {
+  print(x^a)
+}
+power2(3,8)
+```
+
+# Question 15.C
+```{r}
+power2(10,3)
+power2(8,17)
+power2(131,3)
+```
+
+
+# Question 15.D
+```{r}
+power3 <- function(x,a){
+  return(x^a)
+}
+```
+
+# Question 15.E
+```{r}
+# plot power 3 with x = 1:10 and a = 2
+x <- 1:10
+a <- 2
+y <- power3(x, a)
+plot(x, y, xlab = "log(x)", ylab = "log(x^2)", main = "Plot of power3 with a = 2, log scaled", log ="xy")
+```
+
+# Question 15.F
+```{r}
+PlotPower <- function(x, a) {
+  y <- power3(x, a)
+  plot(x, y, xlab = "x", ylab = "x^a", main = paste("Plot of power3 with a = ", a))
+}
+
+PlotPower(1:10,3)
+```
+
 
