@@ -22,29 +22,30 @@ $$ \begin{equation}
 
 # Question 12.C
 
-*From parts (a) and (b), both models produce the same log odds:
+* From parts (a) and (b), both models produce the same log odds:
 
 $$\hat{\beta}_0 + \hat{\beta}_1 X = (\hat{\alpha}_{\text{orange}0} - \hat{\alpha}_{\text{apple}0}) + (\hat{\alpha}_{\text{orange}1} - \hat{\alpha}_{\text{apple}1})X$$
 
-*Due to linearity, we can just match the coefficients of the two models to find the relationship between the parameters:
+* Due to linearity, we can just match the coefficients of the two models to find the relationship between the parameters:
 
 $$\hat{\alpha}_{\text{orange}0} - \hat{\alpha}_{\text{apple}0} = \hat{\beta}_0 = 2$$
 $$\hat{\alpha}_{\text{orange}1} - \hat{\alpha}_{\text{apple}1} = \hat{\beta}_1 = -1$$
+
 * there are infinity many solutions to the above systems without an additional constraint equation. This means that there are infinity many solutions that give the same softmax model; therefore, the softmax model is not uniquely identifiable and is overparamertized.
 
 # Question 12.D
 
-*Equating the log odds:
+* Equating the log odds:
 
 $$\hat{\beta}_0 + \hat{\beta}_1 x = (\hat{\alpha}_{\text{orange}0} - \hat{\alpha}_{\text{apple}0}) + (\hat{\alpha}_{\text{orange}1} - \hat{\alpha}_{\text{apple}1})x$$
 
-*Leveraging linearity, equating the coefficients, and plugging in the softmax parameters given:
+* Leveraging linearity, equating the coefficients, and plugging in the softmax parameters given:
 
 $$\hat{\beta}_0 = \hat{\alpha}_{\text{orange}0} - \hat{\alpha}_{\text{apple}0} = 1.2 - 3 = -1.8$$
 
 $$\hat{\beta}_1 = \hat{\alpha}_{\text{orange}1} - \hat{\alpha}_{\text{apple}1} = -2 - 0.6 = -2.6$$
 
-*We have the unique solutions $\hat{\beta}_0 = -1.8$ and $\hat{\beta}_1 = -2.6$. This implies the logistic regression model is not overparamertized and the softmax regression is a generalization of the logistic regression.
+* We have the unique solutions $\hat{\beta}_0 = -1.8$ and $\hat{\beta}_1 = -2.6$. This implies the logistic regression model is not overparamertized and the softmax regression is a generalization of the logistic regression.
 
 # Question 12.E
 
@@ -74,7 +75,7 @@ friends_model <- test_data |>
 mean(your_model$pred_logistic == friends_model$pred_softmax)
 ```
 
-*This code simulates 2000 test observations, applies both the logistic and softmax models to predict the probabilities of being orange, and then compares the predicted labels from both models. The answer is always one; therefore, the models are in complete agreement always.
+* This code simulates 2000 test observations, applies both the logistic and softmax models to predict the probabilities of being orange, and then compares the predicted labels from both models. The answer is always one; therefore, the models are in complete agreement always.
 
 # Question 14.A
 ```{r}
@@ -109,7 +110,7 @@ features |>
   theme_bw()
 ```
 
-*Horsepower and weight seem to be the best predictors as they have the least overlapping points between the two classes (mpg01 = 0 and mpg01 = 1).
+* Horsepower and weight seem to be the best predictors as they have the least overlapping points between the two classes (mpg01 = 0 and mpg01 = 1).
 
 # Question 14.C
 ```{r}
@@ -146,7 +147,7 @@ table(Predicition = glm.pred, Actual = auto_sub_test$mpg01)
 
 ```
 
-*The test error rate is 0.13 (5/39). This means that the model correctly classifies 87% of the test observations.
+* The test error rate is 0.13 (5/39). This means that the model correctly classifies 87% of the test observations.
 
 # Question 14.H
 ```{r}
@@ -173,7 +174,7 @@ table(Prediction = knn_pred_10, Actual = test_Y)
 print(paste("Test error rate for K = 10 is", round(1 - mean(knn_pred_10 == test_Y), 2)))
 ```
 
-*K=5 and K=10 seem to provide the same test error rate of 0.15, which is worse than the logistic regression model. K=1 has a higher test error rate of 0.21. If we account for performance, than KNN with k = 5 is the best.
+* K=5 and K=10 seem to provide the same test error rate of 0.15, which is worse than the logistic regression model. K=1 has a higher test error rate of 0.21. If we account for performance, than KNN with k = 5 is the best.
 
 # Question 15.A
 ```{r}
