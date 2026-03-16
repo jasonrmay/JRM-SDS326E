@@ -2,12 +2,10 @@
 title: "HW4"
 output: html_document
 ---
-```{r}
+```{r, include=FALSE}
 library(tidyverse)
 library(rsample)
-library(reticulate)
 ```
-
 
 # 1. Question 5 Data Cleaning
 ```{r}
@@ -27,26 +25,62 @@ dat <- dat |>
 
 ## Q.5.A
 ```{r}
-# naively split the data into training and test sets
-set.seed(4821)
-
-split <- initial_split(dat, prop = 0.8)
-train <- training(split)
-test  <- testing(split)
-
 # fit a logistic a regression model to the training data
 modelA <- glm(default ~ income + balance, family = "binomial", data = dat)
 summary(modelA)
 ```
 
 ## Q.5.B
-```{python}
-import pandas as pd
+```{r, results='hide'}
+# The validation set approach
+set.seed(1)
+
+# naively split the data into training and test sets
+obs <- dat |> nrow()
+train <- sample(obs, 0.8*obs)
+
+# fit a logistic a regression model to the training data
+modelB1 <- glm(default ~ income + balance, family = "binomial", data = dat, subset = train)
+summary(modelB1)
+
+# calculate the MSE
+# MSE1 <- mean((dat$default = predict(modelB1, dat))[-train]^2)
 ```
 
+```{r, results='hide'}
+# The validation set approach
+set.seed(2)
 
+# naively split the data into training and test sets
+obs <- dat |> nrow()
+train <- sample(obs, 0.8*obs)
+
+# fit a logistic a regression model to the training data
+modelB2 <- glm(default ~ income + balance, family = "binomial", data = dat, subset = train)
+summary(modelB2)
+
+# calculate the MSE
+
+```
+
+```{r, results='hide'}
+# The validation set approach
+set.seed(3)
+
+# naively split the data into training and test sets
+obs <- dat |> nrow()
+train <- sample(obs, 0.8*obs)
+
+# fit a logistic a regression model to the training data
+modelB3 <- glm(default ~ income + balance, family = "binomial", data = dat, subset = train)
+summary(modelB3)
+
+# calculate the MSE
+
+```
 
 # 2. Question 10 in Section 6.6
+
 # 3. Question 11 in Section 6.6
 
 
