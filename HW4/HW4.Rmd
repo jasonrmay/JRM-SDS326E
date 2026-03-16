@@ -4,6 +4,8 @@ output: html_document
 ---
 ```{r}
 library(tidyverse)
+library(rsample)
+library(reticulate)
 ```
 
 
@@ -14,7 +16,15 @@ dat <- read.csv("Data/Default.csv")
 glimpse(dat)
 tail(dat)
 slice_sample(dat,n = 10)
+
+# hot swap 'Yes' and 'No' in default in student columns to 1 and 0
+dat <- dat |>
+  mutate(
+    default = if_else(default == "Yes", 1, 0),
+    student = if_else(student == "Yes", 1, 0)
+  )
 ```
+
 ## Q.5.A
 ```{r}
 # naively split the data into training and test sets
@@ -25,9 +35,16 @@ train <- training(split)
 test  <- testing(split)
 
 # fit a logistic a regression model to the training data
-modelA <- glm(mpg ~ horsepower, family = "binomial", data = dat)
+modelA <- glm(default ~ income + balance, family = "binomial", data = dat)
 summary(modelA)
 ```
+
+## Q.5.B
+```{python}
+import pandas as pd
+```
+
+
 
 # 2. Question 10 in Section 6.6
 # 3. Question 11 in Section 6.6
