@@ -7,7 +7,7 @@ library(tidyverse)
 library(rsample)
 ```
 
-# 1. Question 5 Data Cleaning
+# 1. Section 5.4 Question 5 Data Cleaning
 ```{r}
 dat <- read.csv("Data/Default.csv")
 
@@ -26,16 +26,17 @@ dat <- dat |>
 ## Q.5.A
 ```{r}
 # fit a logistic a regression model to the training data
+set.seed(1)
 modelA <- glm(default ~ income + balance, family = "binomial", data = dat)
 summary(modelA)
 ```
 
 ## Q.5.B
-```{r, results='hide'}
-# The validation set approach
+```{r}
+## The validation set approach
 set.seed(1)
 
-# naively split the data into training and test sets
+# naively split the data into training and test sets with 80% training.
 obs <- dat |> nrow()
 train <- sample(obs, 0.8*obs)
 
@@ -43,43 +44,229 @@ train <- sample(obs, 0.8*obs)
 modelB1 <- glm(default ~ income + balance, family = "binomial", data = dat, subset = train)
 summary(modelB1)
 
-# calculate the MSE
-# MSE1 <- mean((dat$default = predict(modelB1, dat))[-train]^2)
+## calculate the validation set error
+
+# first get the predictions of the test set as probabilities
+predictions <- predict(modelB1, dat, type = "response")[-train]
+
+# hot swap the probabilities to 1 and 0 using a threshold of 0.5
+predictions <- if_else(predictions > 0.5, 1, 0)
+
+misidentified <- sum(predictions != dat$default[-train])
+
+setError <- misidentified / length(predictions) 
+
+print(setError)
+
 ```
 
-```{r, results='hide'}
-# The validation set approach
-set.seed(2)
+```{r}
+set.seed(1)
 
-# naively split the data into training and test sets
+# naively split the data into training and test sets with 75% training
 obs <- dat |> nrow()
-train <- sample(obs, 0.8*obs)
+train <- sample(obs, 0.75*obs)
 
 # fit a logistic a regression model to the training data
 modelB2 <- glm(default ~ income + balance, family = "binomial", data = dat, subset = train)
 summary(modelB2)
 
-# calculate the MSE
+## calculate the validation set error
+
+# first get the predictions of the test set as probabilities
+predictions <- predict(modelB2, dat, type = "response")[-train]
+
+# hot swap the probabilities to 1 and 0 using a threshold of 0.5
+predictions <- if_else(predictions > 0.5, 1, 0)
+
+misidentified <- sum(predictions != dat$default[-train])
+
+setError <- misidentified / length(predictions) 
+
+print(setError)
 
 ```
 
-```{r, results='hide'}
-# The validation set approach
-set.seed(3)
+```{r}
+set.seed(1)
 
-# naively split the data into training and test sets
+# naively split the data into training and test sets with 85% training
 obs <- dat |> nrow()
-train <- sample(obs, 0.8*obs)
+train <- sample(obs, 0.85*obs)
 
 # fit a logistic a regression model to the training data
 modelB3 <- glm(default ~ income + balance, family = "binomial", data = dat, subset = train)
 summary(modelB3)
 
-# calculate the MSE
+## calculate the validation set error
+
+# first get the predictions of the test set as probabilities
+predictions <- predict(modelB3, dat, type = "response")[-train]
+
+# hot swap the probabilities to 1 and 0 using a threshold of 0.5
+predictions <- if_else(predictions > 0.5, 1, 0)
+
+misidentified <- sum(predictions != dat$default[-train])
+
+setError <- misidentified / length(predictions) 
+
+print(setError)
+
+```
+## Q.5.C
+
+*There is essentially no change in the test error when decreasing the training size, but there is a noticeable change when increasing the training size.
+
+## Q.5.D
+```{r}
+set.seed(1)
+
+# naively split the data into training and test sets with 80% training
+obs <- dat |> nrow()
+train <- sample(obs, 0.8*obs)
+
+# fit a logistic a regression model to the training data
+modelD <- glm(default ~ income + balance + student, family = "binomial", data = dat, subset = train)
+summary(modelD)
+
+## calculate the validation set error
+
+# first get the predictions of the test set as probabilities
+predictions <- predict(modelD, dat, type = "response")[-train]
+
+# hot swap the probabilities to 1 and 0 using a threshold of 0.5
+predictions <- if_else(predictions > 0.5, 1, 0)
+
+misidentified <- sum(predictions != dat$default[-train])
+
+setError <- misidentified / length(predictions) 
+
+print(setError)
+```
+
+There is an increase the test error after including the student status. 
+
+
+# 2. Question 10.A in Section 6.6 
+```{r, include = FALSE}
+library(faux)
+```
+
+
+```{r}
+# generate a data set with p = 20 and n = 1000
+
+set.seed(5)
+
+X <- rnorm_multi(n = 1000, vars = 20, as.matrix = TRUE)
+eps <- rnorm(1000, sd = 5)
+beta <- rnorm(20)
+
+# make some elements exactly zero in the beta vector
+zero_indices <- c(1,3,7,9,13,15,17,19)
+beta[zero_indices] <- 0
+
+# calculate a random linear model
+Y <- X %*% beta + eps
+
+# combine y and x into a tibble
+y_tib <- as_tibble(Y)
+x_tib <- as_tibble(X)
+dat <- bind_cols(y_tib, x_tib) |> rename(y = V1)
 
 ```
 
-# 2. Question 10 in Section 6.6
+# Q.10.B
+```{r}
+# split the data into 100 training obs and 900 testing obs
+set.seed(5)
+
+obs <- dat |> nrow()
+train_ind <- sample(obs, 100)
+
+train <- dat[train_ind,]
+test <- dat |> anti_join(train, by = "y")
+
+```
+
+# Q.10.C
+```{r, include = FALSE}
+library(leaps)
+```
+
+```{r}
+# perform best subset selection on training
+regfit_full_train <- regsubsets(y ~ ., train, nvmax = 20)
+reg_sum_train <- summary(regfit_full_train)
+
+MSE_train <- as_tibble(reg_sum_train$rss / nrow(train)) |> mutate(nv = 1:length(reg_sum_train$rss))
+MSE_train |> ggplot(aes(y=value, x = nv)) +
+  geom_point() +
+  labs(x = "Number of Variables", y = "MSE", title = "Best Subset Selection on Training") +
+  theme_bw()
+  
+```
+
+```{r}
+# perform best subset selection on test data
+# 1. Prepare the test matrix (including an intercept column)
+test_mat <- model.matrix(y ~ ., data = test)
+test_mse <- rep(NA, 20)
+
+# 2. Loop through each model size (1 to 20)
+for (i in 1:20) {
+  # Extract coefficients for the best model of size i
+  coefi <- coef(regfit_full_train, id = i)
+  
+  # Predict Y for the test set using these coefficients
+  # We subset test_mat to only include columns used in this specific model
+  pred <- test_mat[, names(coefi)] %*% coefi
+  
+  # Calculate and store the Test MSE
+  test_mse[i] <- mean((test$y - pred)^2)
+}
+
+# --- Plotting the Test MSE ---
+MSE_test <- tibble(
+  model_size = 1:20,
+  test_mse = test_mse
+)
+
+MSE_test |> ggplot(aes(x = model_size, y = test_mse)) +
+  geom_point() +
+  labs(x = "Number of Variables", y = "MSE", title = "Best Subset Selection on Test") +
+  theme_bw()
+
+```
+#Q.10.E
+```{r}
+min_mse <- MSE_test |> filter(test_mse == min(test_mse))
+print(min_mse$model_size)
+```
+
+The test model takes has the lowest MSE with a model size of 6 variables.
+
+
+# Q.10.F
+```{r}
+coef6 <- coef(regfit_full_train, id = 6)[-1]
+
+coef0 <- beta[c(8,10,11,14,16,20)]
+
+print(coef6)
+print(coef0)
+```
+# Q.10.F
+```{r}
+diff <- coef0 - coef6
+x_axis <- 1:6
+
+diff_tib <- as_tibble(diff) |> add_column(x_axis)
+
+diff_tib|> ggplot(aes(y =diff, x = x_axis)) +
+  geom_point()
+```
+
 
 # 3. Question 11 in Section 6.6
 
