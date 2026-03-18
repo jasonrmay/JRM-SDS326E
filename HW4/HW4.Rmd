@@ -2,18 +2,17 @@
 title: "HW4"
 output: html_document
 ---
-```{r, include=FALSE}
+```{r}
 library(tidyverse)
 library(rsample)
 ```
 
 # 1. Section 5.4 Question 5 Data Cleaning
+
 ```{r}
 dat <- read.csv("Data/Default.csv")
 
 glimpse(dat)
-tail(dat)
-slice_sample(dat,n = 10)
 
 # hot swap 'Yes' and 'No' in default in student columns to 1 and 0
 dat <- dat |>
@@ -24,6 +23,7 @@ dat <- dat |>
 ```
 
 ## Q.5.A
+
 ```{r}
 # fit a logistic a regression model to the training data
 set.seed(1)
@@ -32,6 +32,7 @@ summary(modelA)
 ```
 
 ## Q.5.B
+
 ```{r}
 ## The validation set approach
 set.seed(1)
@@ -113,11 +114,13 @@ setError <- misidentified / length(predictions)
 print(setError)
 
 ```
+
 ## Q.5.C
 
-*There is essentially no change in the test error when decreasing the training size, but there is a noticeable change when increasing the training size.
+**There is essentially no change in the test error when decreasing the training size, but there is a noticeable change when increasing the training size**
 
 ## Q.5.D
+
 ```{r}
 set.seed(1)
 
@@ -144,11 +147,12 @@ setError <- misidentified / length(predictions)
 print(setError)
 ```
 
-There is an increase the test error after including the student status. 
+**There is an increase the test error after including the student status. **
 
 
 # 2. Question 10.A in Section 6.6 
-```{r, include = FALSE}
+
+```{r}
 library(faux)
 ```
 
@@ -176,7 +180,8 @@ dat <- bind_cols(y_tib, x_tib) |> rename(y = V1)
 
 ```
 
-# Q.10.B
+## Q.10.B
+
 ```{r}
 # split the data into 100 training obs and 900 testing obs
 set.seed(5)
@@ -189,8 +194,9 @@ test <- dat |> anti_join(train, by = "y")
 
 ```
 
-# Q.10.C
-```{r, include = FALSE}
+## Q.10.C
+
+```{r}
 library(leaps)
 ```
 
@@ -209,24 +215,24 @@ MSE_train |> ggplot(aes(y=value, x = nv)) +
 
 ```{r}
 # perform best subset selection on test data
-# 1. Prepare the test matrix (including an intercept column)
+# Prepare the test matrix (including an intercept column)
 test_mat <- model.matrix(y ~ ., data = test)
 test_mse <- rep(NA, 20)
 
-# 2. Loop through each model size (1 to 20)
+# Loop through each model size (1 to 20)
 for (i in 1:20) {
-  # Extract coefficients for the best model of size i
+  
+  # Extract coefficients for the best training model of size i
   coefi <- coef(regfit_full_train, id = i)
   
   # Predict Y for the test set using these coefficients
-  # We subset test_mat to only include columns used in this specific model
   pred <- test_mat[, names(coefi)] %*% coefi
   
   # Calculate and store the Test MSE
   test_mse[i] <- mean((test$y - pred)^2)
 }
 
-# --- Plotting the Test MSE ---
+# combine model size and test MSE into a tibble for plotting
 MSE_test <- tibble(
   model_size = 1:20,
   test_mse = test_mse
@@ -238,17 +244,21 @@ MSE_test |> ggplot(aes(x = model_size, y = test_mse)) +
   theme_bw()
 
 ```
-#Q.10.E
+
+## Q.10.E
+
 ```{r}
 min_mse <- MSE_test |> filter(test_mse == min(test_mse))
 print(min_mse$model_size)
 ```
 
-The test model takes has the lowest MSE with a model size of 6 variables.
+**The test model takes has the lowest MSE with a model size of 6 variables.**
 
 
-# Q.10.F
+## Q.10.F
+
 ```{r}
+# get the coefficients for the model with the lowest test MSE (model size 6). Ignore the intercept.
 coef6 <- coef(regfit_full_train, id = 6)[-1]
 
 coef0 <- beta[c(8,10,11,14,16,20)]
@@ -256,19 +266,146 @@ coef0 <- beta[c(8,10,11,14,16,20)]
 print(coef6)
 print(coef0)
 ```
-# Q.10.F
+
+**There is a significant difference in some of the coefficients between the model with the lowest test MSE and the true beta. Two of the coefficients are quite similar.**
+
+## Q.10.F
+
 ```{r}
-diff <- coef0 - coef6
-x_axis <- 1:6
+p = 20
 
-diff_tib <- as_tibble(diff) |> add_column(x_axis)
+# intialize a vector to store the coefficient error for each model size
+coef_error <- numeric(p)
 
-diff_tib|> ggplot(aes(y =diff, x = x_axis)) +
-  geom_point()
+for (r in 1:p) {
+  # get the coefficients for the model with r predictors (including the intercept)
+  coef_r <- coef(regfit_full_train, id = r)
+  
+  # Build full beta_hat vector of length p (zeros for excluded predictors)
+  beta_hat <- numeric(p)
+  
+  pred_names <- names(coef_r)[names(coef_r) != "(Intercept)"]
+  
+  # Extract column indices from names like "X1" -> 1
+  col_idx <- as.integer(sub("X", "", pred_names))
+  beta_hat[col_idx] <- coef_r[pred_names]
+  
+  # calculate error
+  coef_error[r] <- sqrt(sum((beta - beta_hat)^2))
+}
+
+# combine model size and coefficient error into a tibble for plotting
+coef_error_df <- tibble(
+  model_size = 1:p,
+  coef_error = coef_error
+)
+
+coef_error_df |> ggplot(aes(x = model_size, y = coef_error)) +
+  geom_point() +
+  labs(x = "Model Size", y = "Coefficient Error", title = "Coefficient Error vs Model Size") +
+  theme_bw()
+```
+
+**The coefficient error follows the MSE as the model size increases for the test set, with the lowest error at a model size of 6 variables.**
+
+# 3. Question 11 in Section 6.6 Data Cleaning
+
+```{r}
+dat <- read.csv("Data/Boston.csv")
+glimpse(dat)
+```
+
+```{r}
+library(glmnet)
 ```
 
 
-# 3. Question 11 in Section 6.6
+## Q.11.A
+
+```{r}
+# use lasso regression to predict crim
+x <- model.matrix(crim ~ ., dat)[, -1] # exclude the intercept
+y <- dat$crim
+
+# combine into tibble
+model_dat <- tibble(y = y, x)
+
+# split the data into training and test sets. Use 50/50 split.
+set.seed(1)
+obs <- nrow(dat)
+train_ind <- sample(obs, 0.5*obs)
+train <- model_dat[train_ind, ]
+test <- model_dat |> anti_join(train, by = "y")
+
+# fit a lasso regression model to the training data
+x_train <- as.matrix(train[, -1]) # exclude the response variable
+y_train <- train$y
+lasso_model <- glmnet(x_train, y_train, alpha = 1)
+plot(lasso_model)
+
+# use cross validation to find the best lambda
+x_test <- as.matrix(test[, -1]) # exclude the response variable
+y_test <- test$y
+cv.out <- cv.glmnet(x_train, y_train, alpha = 1)
+plot(cv.out)
+
+# the best lambda
+bestlam <- cv.out$lambda.min
+
+# predict the test set using the best lambda
+lasso.pred <- predict(lasso_model, s = bestlam,
+newx = x_test)
+
+# the mse of the test set prediction with the best lambda
+best_lassoTest_mse <-mean((lasso.pred - y_test)^2)
+best_lassoTest_mse
+
+```
+
+**Lasso had a test mse of 40.58 when using the best lambda value found using cross validation. The lasso model dropped two variables as well.**
+
+```{r, include=FALSE}
+library(pls)
+```
 
 
+```{r}
+# use PCR to predict crim
+set.seed(1)
+pcr.fit <- pcr(y ~ ., data = train, scale = TRUE, validation = "CV")
+summary(pcr.fit)
 
+validationplot(pcr.fit, val.type = "MSEP")
+
+# predict test set using all comps as it is the lowest MSE
+pcr.pred <- predict(pcr.fit, test, ncomp = 13)
+# the mse of the test set
+best_pcrTest_mse <- mean((pcr.pred - y_test)^2)
+best_pcrTest_mse
+
+```
+
+**PCR had a test MSE of 41.33 and shows that just 9 comps would explain almost all the variance in the data, but the test mse is lowest with 13 comps.**
+
+## Q.11.B
+
+```{r}
+# Use the lambda value that gives the lowest test MSE to fit a lasso model on the full data set and report the non-zero coefficients.
+out_lasso <- glmnet(x, y, alpha = 1)
+lasso.coef <- predict(out_lasso, type = "coefficients",s = bestlam)[0:14,]
+nonzero_coef <- lasso.coef[lasso.coef != 0]
+print(nonzero_coef[-1]) # exclude the intercept
+print(paste("The lasso test MSE:",best_lassoTest_mse))
+
+out_pcr <- pcr(y ~ ., data = model_dat, scale = TRUE, validation = "CV", ncomp = 13)
+pcr.coef <- coef(out_pcr, ncomp = 13)
+print(pcr.coef)
+print(paste("The pcr test MSE:",best_pcrTest_mse))
+
+```
+
+**The lasso test MSE is lower than the best PCR test MSE, but they are less than one unit apart. The coefficients differ significantly between the two models, but the lasso model dropped some variables. Due to lasso having a lower test MSE and a more interpretable model, I would say the the lasso model performs better than the PCR model.**
+
+## Q.11.C
+
+**Age and tax features are dropped in the lasso model, but all variables are included in the PCR model; therefore, the PCR technique proved no more useful than just using least squares.**
