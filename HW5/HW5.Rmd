@@ -2,8 +2,10 @@
 title: "HW5"
 output: html_document
 ---
-```{r}
+```{r, output = 'hide'}
 library(tidyverse)
+library(tidymodels)
+library(splines)
 ```
 
 
@@ -16,10 +18,181 @@ glimpse(dat)
 ### Q.9.A
 ```{r}
 # fit a cubic regression model that predics nox given dis.
+model <- lm(nox ~ poly(dis, 3), data = dat)
+
+summary(model)
+
+# plot the data and the fitted curve
+ggplot(dat, aes(x = dis, y = nox)) +
+  geom_point() +
+  geom_smooth(method = 'lm', formula = y ~ poly(x, 3), se = FALSE) +
+  labs(title = "Cubic Regression of NOX on DIS",
+       x = "Distance to Employment Centers (DIS)",
+       y = "Nitric Oxides Concentration (NOX)") +
+  theme_minimal()
+```
+
+### Q.9.B
+```{r}
+# plot the RSS over a range of degrees for the polynomial fit
+rss_values <- sapply(1:15, function(degree) {
+  model <- lm(nox ~ poly(dis, degree), data = dat)
+  sum(model$residuals^2)
+})
+
+plot(1:15, rss_values, type = "b", xlab = "Degree of Polynomial", ylab = "RSS",
+     main = "RSS vs Degree of Polynomial")
+```
+### Q.9.C
+```{r, cahce = TRUE}
+# use cv to find the best degree
+
+# Cross-validation folds
+set.seed(777)
+folds <- vfold_cv(dat, v = 10)
+
+# set the recipe 
+rec <- recipe(nox ~ dis, data = dat) |>
+  step_poly(dis, degree = tune())
+
+# set the cooking method
+mod <- linear_reg() |>
+  set_engine("lm")
+
+# set the plan
+wf <- workflow() |>
+  add_recipe(rec) |>
+  add_model(mod)
+
+# tune over a grid of degrees
+degree_grid <- tibble(degree = 1:10)
+
+tune_results <- tune_grid(
+  wf,
+  resamples = folds,
+  grid      = degree_grid,
+  metrics   = metric_set(rmse)
+)
+
+# pick the best degree
+autoplot(tune_results)
+show_best(tune_results, metric = "rmse")
+best_degree <- select_best(tune_results, metric = "rmse")
+
+#  fit on all of dat
+final_wf  <- finalize_workflow(wf, best_degree)
+final_fit <- fit(final_wf, data = dat)
+
+# The optimal fit on a plot of the data
+dat |> ggplot( aes(x = dis, y = nox)) +
+  geom_point() +
+  geom_smooth(method = 'lm', formula = y ~ poly(x, best_degree$degree), se = FALSE) +
+  labs(title = paste("Polynomial Regression of NOX on DIS (Degree =", best_degree$degree, ")"),
+       x = "Distance to Employment Centers (DIS)",
+       y = "Nitric Oxides Concentration (NOX)") +
+  theme_minimal()
+```
+
+**We find the most optimal degree, based on minimal RMSE, is 3. However, it should be noted, that a degree 4 polynomial has essentially the same RMSE.**
+
+# Q.9.D
+```{r}
+# fit a spline regression model that predicts nox given dis.
+model_spline <- lm(nox ~ bs(dis, df = 4 ), data = dat )
+
+summary(model_spline)
+
+# plot the data and the fitted curve
+dat |> ggplot(aes(x = dis, y = nox)) +
+  geom_point() +
+  geom_smooth(method = 'lm', formula = y ~ bs(x, df = 4), se = FALSE) +
+  labs(title = "Spline Regression of NOX on DIS",
+       x = "Distance to Employment Centers (DIS)",
+       y = "Nitric Oxides Concentration (NOX)") +
+  theme_minimal()
+                                                
+```
+
+**The default knots are used which are 25th, 50th, and 75th percentiles of dis.**
+
+```{r}
+# plot fitted spline RSS over range of degrees of freedom
+rss_spline <- sapply(3:25, function(df) {
+  model <- lm(nox ~ bs(dis, df = df), data = dat)
+  sum(model$residuals^2)
+})
+
+plot(3:25, rss_spline, type = "b", xlab = "Degrees of Freedom", ylab = "RSS",
+     main = "RSS vs Degrees of Freedom for Spline Regression")
 
 ```
 
+**The most optimal df is likely 13, as the RSS only decreases slightly from then on out.**
+
+# Q.9.F
+```{r, cache = TRUE}
+# Cross-validation folds
+set.seed(777)
+folds <- vfold_cv(dat, v = 10)
+
+# set the recipe 
+rec <- recipe(nox ~ dis, data = dat) |>
+  step_bs(dis, deg_free = tune(), degree = tune())
+
+# set the cooking method
+mod <- linear_reg() |>
+  set_engine("lm")
+
+# set the plan
+wf <- workflow() |>
+  add_recipe(rec) |>
+  add_model(mod)
+
+# tune over a grid of df
+df_grid <- grid_regular(
+  deg_free(range = c(3, 12)),
+  degree(range = c(1, 5)),
+  levels = c(deg_free = 10, degree = 5)
+)
+
+
+tune_results <- tune_grid(
+  wf,
+  resamples = folds,
+  grid      = df_grid,
+  metrics   = metric_set(rmse)
+)
+
+# pick the best degree
+autoplot(tune_results)
+show_best(tune_results, metric = "rmse")
+best_df <- select_best(tune_results, metric = "rmse")
+
+#  fit on all of dat
+final_wf  <- finalize_workflow(wf, best_df)
+final_fit <- fit(final_wf, data = dat)
+
+# The optimal fit on a plot of the data
+dat |> ggplot(aes(x = dis, y = nox)) +
+  geom_point() +
+  geom_smooth(method = 'lm', formula = y ~ bs(x, df = best_df$deg_free, knots = best_df$degree), se = FALSE) +
+  labs(title = "Spline Regression of NOX on DIS",
+       x = "Distance to Employment Centers (DIS)",
+       y = "Nitric Oxides Concentration (NOX)") +
+  theme_minimal()
+```
+
+**The optimal fit, defined as the lowest rmse, is df = 8, degree = 2. **
 
 # Question 10 in Section 7.9
+
+
 # Question 8 in Section 8.4
 # Question 9 in Section 8.4
+
+
+
+
+
+
+
