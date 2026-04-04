@@ -2,4 +2,24 @@
 title: "HW5"
 output: html_document
 ---
+```{r}
+library(tidyverse)
+```
 
+
+
+# Question 9 in Section 7.9
+```{r}
+dat <- read_csv('Data/Boston.csv')
+glimpse(dat)
+```
+### Q.9.A
+```{r}
+# fit a cubic regression model that predics nox given dis.
+
+```
+
+
+# Question 10 in Section 7.9
+# Question 8 in Section 8.4
+# Question 9 in Section 8.4
