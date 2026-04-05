@@ -6,6 +6,7 @@ output: html_document
 library(tidyverse)
 library(tidymodels)
 library(splines)
+library(mgcv)
 ```
 
 
@@ -95,7 +96,7 @@ dat |> ggplot( aes(x = dis, y = nox)) +
 
 **We find the most optimal degree, based on minimal RMSE, is 3. However, it should be noted, that a degree 4 polynomial has essentially the same RMSE.**
 
-# Q.9.D
+### Q.9.D
 ```{r}
 # fit a spline regression model that predicts nox given dis.
 model_spline <- lm(nox ~ bs(dis, df = 4 ), data = dat )
@@ -129,7 +130,7 @@ plot(3:25, rss_spline, type = "b", xlab = "Degrees of Freedom", ylab = "RSS",
 
 **The most optimal df is likely 13, as the RSS only decreases slightly from then on out.**
 
-# Q.9.F
+### Q.9.F
 ```{r, cache = TRUE}
 # Cross-validation folds
 set.seed(777)
@@ -185,6 +186,63 @@ dat |> ggplot(aes(x = dis, y = nox)) +
 **The optimal fit, defined as the lowest rmse, is df = 8, degree = 2. **
 
 # Question 10 in Section 7.9
+
+```{r}
+dat <- read_csv('Data/College.csv')
+dat <-dat |>
+  column_to_rownames('...1')
+```
+
+### Q.10.A
+```{r}
+set.seed(777)
+split <- initial_split(dat, prop = 0.75)
+train_data <- training(split)
+test_data <- testing(split)
+
+# perform forward step wise selection on the training data
+full_model <- lm(Outstate ~ ., data = train_data)
+null_model <- lm(Outstate ~ 1, data = train_data)
+
+n <- nrow(mtcars)
+forward_model <- MASS::stepAIC(null_model, scope = list(lower = null_model, upper = full_model), direction = "forward", k = log(n), )
+
+summary(forward_model)
+```
+
+### Q.10.B
+```{r}
+# fit GAM using predictors of the previous model
+gam_model <- gam(Outstate ~ s(Expend) + Private + s(Room.Board) + s(Grad.Rate) + s(Terminal) + 
+    s(perc.alumni) + s(Personal) , data = train_data)
+summary(gam_model)
+
+# plot the fitted functions
+par(mfrow = c(2, 4))
+plot(gam_model, se=TRUE, col = "blue")
+```
+
+**The GAM model resulted in a higher adjusted r-squared (79%) value over the forward step wise selection(75%). Though, this could just suggest over fitting. Another difference is that the terminal feature is now less significant.**
+
+# Q 10.C
+```{r}
+# predict on the test data
+pred_forward <- predict(forward_model, newdata = test_data)
+
+pred_gam <- predict(gam_model, newdata = test_data)
+
+rmse_forward <- sqrt(mean((test_data$Outstate - pred_forward)^2))
+rmse_gam <- sqrt(mean((test_data$Outstate - pred_gam)^2))
+
+cat("RMSE for Forward Stepwise Selection:", rmse_forward, "\n")
+cat("RMSE for GAM:", rmse_gam, "\n")
+```
+
+**The gam model has a significantly lower RMSE on the test data, suggesting it is a better model. Therefore, some of the features are most likely non linear.**
+
+# Q 10.D 
+
+**Expend, Room.Board, Grad.Rate, and Personal appear non-linear from the gam plots. **
 
 
 # Question 8 in Section 8.4
