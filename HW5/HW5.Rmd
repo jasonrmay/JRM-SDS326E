@@ -7,16 +7,19 @@ library(tidyverse)
 library(tidymodels)
 library(splines)
 library(mgcv)
+library(tree)
+library(randomForest)
+library(ranger)
 ```
 
 
 
-# Question 9 in Section 7.9
+# 1. Question 9 in Section 7.9
 ```{r}
 dat <- read_csv('Data/Boston.csv')
 glimpse(dat)
 ```
-### Q.9.A
+### Q.1.A
 ```{r}
 # fit a cubic regression model that predics nox given dis.
 model <- lm(nox ~ poly(dis, 3), data = dat)
@@ -33,7 +36,7 @@ ggplot(dat, aes(x = dis, y = nox)) +
   theme_minimal()
 ```
 
-### Q.9.B
+### Q.1.B
 ```{r}
 # plot the RSS over a range of degrees for the polynomial fit
 rss_values <- sapply(1:15, function(degree) {
@@ -44,7 +47,7 @@ rss_values <- sapply(1:15, function(degree) {
 plot(1:15, rss_values, type = "b", xlab = "Degree of Polynomial", ylab = "RSS",
      main = "RSS vs Degree of Polynomial")
 ```
-### Q.9.C
+### Q.1.C
 ```{r, cahce = TRUE}
 # use cv to find the best degree
 
@@ -96,7 +99,7 @@ dat |> ggplot( aes(x = dis, y = nox)) +
 
 **We find the most optimal degree, based on minimal RMSE, is 3. However, it should be noted, that a degree 4 polynomial has essentially the same RMSE.**
 
-### Q.9.D
+### Q.1.D
 ```{r}
 # fit a spline regression model that predicts nox given dis.
 model_spline <- lm(nox ~ bs(dis, df = 4 ), data = dat )
@@ -116,6 +119,7 @@ dat |> ggplot(aes(x = dis, y = nox)) +
 
 **The default knots are used which are 25th, 50th, and 75th percentiles of dis.**
 
+### Q.1.E
 ```{r}
 # plot fitted spline RSS over range of degrees of freedom
 rss_spline <- sapply(3:25, function(df) {
@@ -130,7 +134,7 @@ plot(3:25, rss_spline, type = "b", xlab = "Degrees of Freedom", ylab = "RSS",
 
 **The most optimal df is likely 13, as the RSS only decreases slightly from then on out.**
 
-### Q.9.F
+### Q.1.F
 ```{r, cache = TRUE}
 # Cross-validation folds
 set.seed(777)
@@ -185,7 +189,7 @@ dat |> ggplot(aes(x = dis, y = nox)) +
 
 **The optimal fit, defined as the lowest rmse, is df = 8, degree = 2. **
 
-# Question 10 in Section 7.9
+# 2. Question 10 in Section 7.9
 
 ```{r}
 dat <- read_csv('Data/College.csv')
@@ -193,7 +197,7 @@ dat <-dat |>
   column_to_rownames('...1')
 ```
 
-### Q.10.A
+### Q.2.A
 ```{r}
 set.seed(777)
 split <- initial_split(dat, prop = 0.75)
@@ -205,12 +209,12 @@ full_model <- lm(Outstate ~ ., data = train_data)
 null_model <- lm(Outstate ~ 1, data = train_data)
 
 n <- nrow(mtcars)
-forward_model <- MASS::stepAIC(null_model, scope = list(lower = null_model, upper = full_model), direction = "forward", k = log(n), )
+forward_model <- MASS::stepAIC(null_model, scope = list(lower = null_model, upper = full_model), direction = "forward", k = log(n), trace = FALSE)
 
 summary(forward_model)
 ```
 
-### Q.10.B
+### Q.2.B
 ```{r}
 # fit GAM using predictors of the previous model
 gam_model <- gam(Outstate ~ s(Expend) + Private + s(Room.Board) + s(Grad.Rate) + s(Terminal) + 
@@ -224,7 +228,7 @@ plot(gam_model, se=TRUE, col = "blue")
 
 **The GAM model resulted in a higher adjusted r-squared (79%) value over the forward step wise selection(75%). Though, this could just suggest over fitting. Another difference is that the terminal feature is now less significant.**
 
-# Q 10.C
+# Q.2.C
 ```{r}
 # predict on the test data
 pred_forward <- predict(forward_model, newdata = test_data)
@@ -240,17 +244,352 @@ cat("RMSE for GAM:", rmse_gam, "\n")
 
 **The gam model has a significantly lower RMSE on the test data, suggesting it is a better model. Therefore, some of the features are most likely non linear.**
 
-# Q 10.D 
+# Q.2.D 
 
-**Expend, Room.Board, Grad.Rate, and Personal appear non-linear from the gam plots. **
+**Expend and Personal appear non-linear from the gam plots. **
 
 
-# Question 8 in Section 8.4
+# 3. Question 8 in Section 8.4
+```{r}
+dat <- read_csv('Data/Carseats.csv')
+
+# convert character columns to numeric factors
+dat <- dat |>
+  mutate_if(is.character, as.factor) |>
+  mutate_if(is.factor, as.numeric)
+glimpse(dat)
+```
+
+### Q.3.A
+```{r}
+# split the data
+set.seed(777)
+split <- initial_split(dat, prop = 0.75)
+train_data <- training(split)
+test_data <- testing(split)
+```
+
+
+### Q.3.B
+```{r}
+# fit a regression tree
+tree_model <- tree(Sales ~ ., data = train_data)
+
+# print the summary of the tree model
+summary(tree_model)
+
+# plot the tree
+plot(tree_model)
+text(tree_model, pretty = 0)
+
+# predict on the training
+pred_train <- predict(tree_model, newdata = train_data)
+
+# print training MSE
+mse_train <- mean((train_data$Sales - pred_train)^2)
+cat("\nTraining MSE for Regression Tree:", mse_train, "\n")
+
+# predict on test
+pred_tree <- predict(tree_model, newdata = test_data)
+
+# print test MSE
+mse_tree <- mean((test_data$Sales - pred_tree)^2)
+cat("\nTest MSE for Regression Tree:", mse_tree, "\n")
+
+```
+
+**There is a significant increase in MSE from the training (2.33) to the test data (4.30), suggesting that the tree is over fitting.** 
+
+### Q.3.C
+```{r}
+# prune the tree using cross validation
+set.seed(777)
+
+cv_tree <- cv.tree(tree_model)
+
+# plot the cross validation results
+plot(cv_tree$size, cv_tree$dev, type = "b", xlab = "Tree Size", ylab = "Deviance", main = "Cross-Validation for Tree Pruning")
+
+# find the optimal tree size
+optimal_size <- cv_tree$size[which.min(cv_tree$dev)]
+cat("\nOptimal Tree Size:", optimal_size, "\n")
+
+# prune the tree to the optimal size
+pruned_tree <- prune.tree(tree_model, best = optimal_size)
+# predict on the test data using the pruned tree
+pred_pruned <- predict(pruned_tree, newdata = test_data)
+# print test MSE for the pruned tree
+mse_pruned <- mean((test_data$Sales - pred_pruned)^2)
+cat("\nTest MSE for Pruned Tree:", mse_pruned, "\n")
+
+```
+
+**Pruning the tree would not help in reducing the test MSE as the minimum deviance is essentially at the largest tree size. Therefore, the tree is not over fitting due to its size. Even with pruning the test MSE is 4.44. **
+
+### Q.3.D
+```{r}
+# fit a bagging model
+set.seed(777)
+bag_model <- randomForest(Sales ~ ., data = train_data, mtry = ncol(train_data) - 1, ntree = 500)
+
+# predict on the test data and training
+pred_bag_test <- predict(bag_model, newdata = test_data)
+pred_bag_train <- predict(bag_model, newdata = train_data)
+
+# print training MSE for the bagging model
+mse_bag_train <- mean((train_data$Sales - pred_bag_train)^2)
+cat("\nTraining MSE for Bagging Model:", mse_bag_train, "\n")
+
+# print test MSE for the bagging model
+mse_bag <- mean((test_data$Sales - pred_bag_test)^2)
+cat("\nTest MSE for Bagging Model:", mse_bag, "\n")
+
+# print the importance
+randomForest::importance(bag_model)
+```
+
+**After implementing a basic bagging approach, the Test MSE has decreased but there is still significant over fitting considering the increase in MSE from training to test. The top 3 most important feature are: ShelveLoc, Price, and CompPrice. It should be noted, important features to a bad model are not necessarily important to a good one.**
+
+### Q.3.E
+```{r}
+
+set.seed(777)
+
+# use a random forest to predict sales, tune mtry, depth, and number of trees.
+
+# set up the recipe
+rec <- recipe(Sales ~ ., data = train_data)
+
+# set up the model
+rf_model <- rand_forest(
+  mtry = tune(),
+  trees = tune(),
+  min_n = tune ()
+) |>
+  set_engine("ranger", max.depth = 5, num.threads = 1, importance = "impurity") |>
+  set_mode("regression")
+
+# set up the workflow
+wf <- workflow() |>
+  add_recipe(rec) |>
+  add_model(rf_model)
+
+cv_folds <- vfold_cv(train_data, v = 10)
+
+n_features <- ncol(train_data) - 1  # Exclude the target variable
+sqrt_features <- floor(sqrt(n_features))  # Common default for mtry
+
+# set up the tuning grid
+rf_grid <- grid_space_filling(
+  mtry(range = c(sqrt_features, n_features)),
+  trees(range = c(100, 500)),
+  min_n(range = c(2, 20)),
+  size = 30
+)
+
+```
+
+```{r, cache = TRUE}
+library(doParallel)
+n_cores <- parallel::detectCores() - 1  # leave 1 core free for the OS
+cl <- makeCluster(n_cores)
+registerDoParallel(cl)
+
+rf_res <- tune_grid(
+  wf,
+  resamples = cv_folds,
+  grid      = rf_grid,
+  metrics   = metric_set(yardstick::rmse, yardstick::rsq),
+  control   = control_grid(verbose = FALSE, save_pred = TRUE, allow_par = TRUE)
+)
+
+stopCluster(cl)
+registerDoSEQ()
+
+autoplot(rf_res)                      # visualize hyperparameter landscape
+show_best(rf_res, metric = "rmse")    # top 5 combos
+
+best_params <- select_best(rf_res, metric = "rmse")
+
+final_wf <- wf |>
+  finalize_workflow(best_params)
+
+final_fit <- final_wf |>
+  fit(data = train_data)
+
+
+```
+
+```{r}
+# add predictions to the training and test data
+train_preds <- train_data |>
+  bind_cols(predict(final_fit, train_data))
+
+test_preds <- test_data |>
+  bind_cols(predict(final_fit, test_data))
+
+# print training and test MSE
+train_mse <- mean((train_preds$Sales - train_preds$.pred)^2)
+test_mse <- mean((test_preds$Sales - test_preds$.pred)^2)
+
+cat("\nTraining MSE for Random Forest:", train_mse, "\n")
+cat("\nTest MSE for Random Forest:", test_mse, "\n")
+```
+
+```{r}
+final_fitted <- final_fit |> extract_fit_parsnip()
+ 
+importance_tbl <- final_fitted |>
+  vip::vi() |>
+  arrange(desc(Importance))
+ 
+cat("Feature Importances (Gini impurity):\n")
+print(importance_tbl, n = 20)
+```
+
+**While there is still a decent increase in MSE between training and test data (1.52 -> 2.57), the increase and the MSE is overall significantly lower. Therefore, this tuned random forest has reduced over fitting while increasing accuracy. Additionally, the important features remain the same. The value of m is the length of the subset of features given to a single decision tree, it is crucial in reducing over fitting by making it harder for a single tree to memorize every data point. The increase in difficulty leads to each decision tree being weaker, but over all, the ensmble is more accurate with a lower MSE. **
+
+### Q.3.F
+```{r}
+# use BART
+library(BART)
+set.seed(777)
+
+xtrain <- train_data |> select(-Sales) |> as.matrix()
+ytrain <- train_data$Sales
+
+xtest <- test_data |> select(-Sales) |> as.matrix()
+ytest <- test_data$Sales
+
+bartfit <- gbart(xtrain, ytrain, x.test = xtest)
+
+yhat.bart_train <- bartfit$yhat.train.mean
+trainMSE <- mean((ytrain - yhat.bart_train)^2)
+
+cat("\nTraining MSE for BART:", trainMSE, "\n")
+
+yhat.bart <- bartfit$yhat.test.mean
+testMSE <- mean((ytest - yhat.bart)^2)
+
+cat("\nTest MSE for BART:", testMSE, "\n")
+
+```
+**The BART model has a training MSE of 0.586 and a test MSE of 1.210, which is less than the tuned random forest. Therefore, the BART model reduces over fitting while increasing accuracy more than the tuned random forest. Additionally, it is more computationally efficient. **
+
 # Question 9 in Section 8.4
+```{r}
+dat <- read_csv('Data/OJ.csv')
+
+# convert character columns to numeric factors
+dat <- dat |>
+  mutate_if(is.character, as.factor)
+
+glimpse(dat)
+```
+
+### Q.4.A
+```{r}
+# split the data
+set.seed(777)
+split <- initial_split(dat, prop = 0.748)
+train_data <- training(split)
+test_data <- testing(split)
+```
+
+### Q.4.B
+```{r}
+# fit a classification tree
+tree_model <- tree(Purchase ~ ., data = train_data)
+summary(tree_model)
+```
+
+**The training error rate is 16% and the tree has 7 terminal nodes.**
+
+### Q.4.C
+```{r}
+tree_model
+```
+
+**The tree predicsts MM if the LoyalCH value is less than 0.276.**
+
+### Q.4.D
+```{r}
+plot(tree_model)
+text(tree_model, pretty = 0)
+```
+
+**Here we see the series of decisions that leads to each prediction.**
+
+### Q.4.E 
+```{r}
+# predict on the test data
+pred_tree <- predict(tree_model, newdata = test_data, type = "class")
+
+# print test error rate
+test_error_rate <- mean(pred_tree != test_data$Purchase)
+cat("\nTest Error Rate for Classification Tree:", test_error_rate, "\n")
+
+# print the confusion matrix
+table(pred_tree, test_data$Purchase)
+```
+
+### Q.4.F
+```{r}
+# prune the tree using cross validation
+set.seed(777)
+cv_tree <- cv.tree(tree_model)
+```
+
+### Q.4.G
+```{r}
+# plot the cross validation results
+plot(cv_tree$size, cv_tree$dev, type = "b", xlab = "Tree Size", ylab = "Deviance", main = "Cross-Validation for Tree Pruning")
+```
+
+### Q.4.H
+```{r}
+# find the optimal tree size
+optimal_size <- cv_tree$size[which.min(cv_tree$dev)]
+cat("\nOptimal Tree Size:", optimal_size, "\n")
+```
+
+### Q.4.I
+```{r}
+# prune the tree to the optimal size
+pruned_tree <- prune.tree(tree_model, best = optimal_size)
+```
+
+### Q.4.J
+```{r}
+# compare the training error rate between the pruned tree and the unpruned tree
+
+# predict on the training data using the pruned tree
+pred_pruned_train <- predict(pruned_tree, newdata = train_data, type = "class")
+
+# print training error rate for the pruned tree
+train_error_rate_pruned <- mean(pred_pruned_train != train_data$Purchase)
+
+cat("\nTraining Error Rate for Unpruned Tree:", mean(pred_tree != train_data$Purchase), "\n")
+cat("\nTraining Error Rate for Pruned Tree:", train_error_rate_pruned, "\n")
+
+```
+
+**The training error rate for the unpruned tree is higher. **
+
+### Q.4.K
+```{r}
+# compare the test error rate of the pruned tree to the unpruned tree
+
+# predict on the test data using the pruned tree
+pred_pruned <- predict(pruned_tree, newdata = test_data, type = "class")
+
+# print test error rate for the pruned tree
+test_error_rate_pruned <- mean(pred_pruned != test_data$Purchase)
+
+cat("\nTest Error Rate for Unpruned Tree:", test_error_rate, "\n")
+cat("\nTest Error Rate for Pruned Tree:", test_error_rate_pruned, "\n ")
 
 
+```
 
-
-
-
-
+**The test error rate is higher for the Pruned tree. **
